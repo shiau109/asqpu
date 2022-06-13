@@ -2,8 +2,8 @@
 
 
 # Dependency in the same package
-from qubit import SQUIDTransmonModel
-from resonator import Resonator
+from physics_model.qubit_model import SQUIDTransmonModel
+from physics_model.resonator import Resonator
 
 
 class SingleReadableTransmon():

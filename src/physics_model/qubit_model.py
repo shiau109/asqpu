@@ -1,10 +1,10 @@
 # Numpy Series
 # Numpy array
-from numpy import linspace, arange, shape
+#from numpy import linspace, arange, shape
 # Numpy common math function
-from numpy import exp
+#from numpy import exp
 # Numpy constant
-from numpy import pi
+#from numpy import pi
 
 
 class TransmonModel():

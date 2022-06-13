@@ -1,11 +1,11 @@
 
 # Numpy Series
 # Numpy array
-from numpy import linspace, arange, shape
+#from numpy import linspace, arange, shape
 # Numpy common math function
-from numpy import exp
+#from numpy import exp
 # Numpy constant
-from numpy import pi
+#from numpy import pi
 
 
 
@@ -16,7 +16,6 @@ class Resonator():
 
     """
     def __init__( self ):
-        print(f"init IsolatedResonator")
         self._f_r = None
         self._Q_internal = None
         self._Q_coupling = None

@@ -1,0 +1,142 @@
+===
+1. Q component
+===
+[
+	{"id":"q1",
+	"type":"qubit",
+	"freq_xy":5,
+	"coupling_xy":1,
+	"freq_ro":4.4},
+
+	{"id":"q2",	
+	"type":"qubit",
+	"freq_xy":5.1,
+	"coupling_xy":1,
+	"freq_ro":4.5},
+	
+	{"id":"qc",
+	"type":"coupler",
+	"freq_xy":5,
+	"freq_ro":4.4}
+
+]
+
+===	
+2. Device
+===
+[
+	{"id":"SDAWG_1",
+		"type":"DAC",
+		"driver":"DummyDAC",
+		"sub_channel":4,
+	},
+
+	{"id":"SDAWG_2",
+		"type":"DAC",
+		"driver":"DummyDAC",
+		"sub_channel":4,
+	},
+
+	{"id":"SDAWG_3",
+		"type":"DAC",
+		"driver":"DummyDAC",
+		"sub_channel":4,
+	},
+
+	{"id":"Mixer",
+		"type":"Mixer",
+		"driver":"DummyIQMixer",
+	}
+
+	
+
+]
+===
+3. Physical channel
+===
+[	
+	{"id":"RO",
+	"type":"upconversion",
+	"port":"ro",
+	"devices":{
+		"DAC":["SDAWG_3-1","SDAWG_3-2"],
+		"Mixer":["I","Q"],
+		"ADC":["SDDIG_2-1"]
+		}
+	},
+
+	{"id":"XY1",
+	"type":"upconversion",
+	"port":"xy",
+	"devices":{
+		"DAC":["SDAWG_1-1","SDAWG_1-2"],
+		"Mixer":["I","Q"],
+		},
+	},
+	{"id":"XY2",
+	"type":"upconversion",
+	"port":"xy",
+	"devices":{
+		"DAC":["SDAWG_1-3","SDAWG_1-4"],
+		"Mixer":["I","Q"],
+		},
+	},
+	{"id":"Z1",
+	"type":"dir_output",
+	"port":"z",
+	"devices":{
+			"DAC":["SDAWG_2-1"],
+		},
+	},
+	{"id":"Z2",
+	"type":"dir_output",
+	"port":"z",
+	"devices":{
+		"DAC":["SDAWG_2-2"],
+		},
+	},
+	{"id":"Zc",
+	"type":"dir_output",
+	"port":"z",
+	"devices":{
+		"DAC":["SDAWG_2-3"],
+		},
+	},
+]
+===	
+4. action
+===
+[
+	{"id":"rxy",
+		"type":"RXYOperation",
+		"duration": "30"
+	},
+
+	{"id":"rz",
+		"type":"RZOperation",
+		"duration": "50"
+	},
+
+	{"id":"swap",
+		"type":"RZOperation",
+		"duration": "35"
+	},
+]
+===
+5. action-Q_component relation
+===
+{
+"action":["ro","rxy","rz","swap"],
+"q_type":["qubit","qubit","qubit","coupler"],
+"port_type":["ro","xy","z","z"]
+}
+===
+6. channel-Q_component relation
+===
+{
+"channel_id":["RO","RO","XY1","XY2","Z1","Z2","Zc"],
+"q_id":["q1","q2","q1","q2","q1","q2","qc"],
+}
+
+
+
