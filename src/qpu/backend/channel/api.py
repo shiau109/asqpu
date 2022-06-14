@@ -4,9 +4,7 @@ from qpu.backend.channel.physical_channel import PhysicalChannel, UpConversionCh
 def channel_from_dict( channel:dict ):
     channel_type = channel["type"]
     channel_id = channel["id"]
-    if channel_type == "upconversion": 
-        print(channel_id)
-   
+    if channel_type == "upconversion":    
         PChObj = UpConversionChannel(channel_id)
         DAC_id_IQ = channel["devices"]["DAC"]
         if len(DAC_id_IQ) == 2:

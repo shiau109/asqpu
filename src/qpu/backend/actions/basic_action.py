@@ -108,17 +108,19 @@ class RXYOperation( Operation ):
 
     
     def to_pulse( self, qubit:Transmon )->Pulse:
-        s = qubit.sensitivity_RF
         theta = self.pars[0]
         phi = self.pars[1]
+
+        s = qubit.sensitivity_RF
         duration = self.duration
         center = self.t0+duration/2
-        amp = theta/pi/s/duration
+        amp = (theta/pi)/s/duration
+        derivative_ratio = 1/qubit.Ec
         pulse = Pulse()
         pulse.carrierFrequency = qubit.transition_freq
         pulse.carrierPhase = phi
         pulse.duration = self.duration
-        pulse.parameters = (amp, duration/4, center, 0)
+        pulse.parameters = (amp, duration/4, center, derivative_ratio)
         pulse.envelopeFunc = DRAGFunc
         return pulse
 
@@ -152,7 +154,7 @@ class RZOperation( Operation ):
 
     
     def to_pulse( self, qubit:Transmon )->Pulse:
-        amp = 1
+        amp = 1/qubit.sensitivity_flux
         phi = self.pars[0]
         duration = self.duration
         width = phi/pi*duration
@@ -168,9 +170,50 @@ class RZOperation( Operation ):
 
 
 class Measurement( PhysicalAction ):
-    def __init__():
-        super.__init__( )
 
+    def __init__( self, id:str ):
+        """
+        
+        args:
+            id: the ID of the operation.
+            qubit: store the information to build pulse
+            pars: a list of parameters to build pulse
+                pars[0] = length
+                pars[1] = s factor
+                pars[2] = edge length
+
+        """
+        super().__init__( id )
+
+    @property
+    def pars( self )->List[float]:
+        """
+        pars[0] = theta\n
+        pars[1] = phi\n     
+        """
+
+        return self._pars
+
+    @pars.setter
+    def pars( self, value:List[float] ):
+        self._pars = value
+
+    
+    def to_pulse( self, qubit:Transmon )->Pulse:
+        s = qubit.sensitivity_RF
+        theta = self.pars[0]
+        phi = self.pars[1]
+        duration = self.duration
+        center = self.t0+duration/2
+        amp = (theta/pi)/s/duration
+        derivative_ratio = 1/qubit.Ec
+        pulse = Pulse()
+        pulse.carrierFrequency = qubit.transition_freq
+        pulse.carrierPhase = phi
+        pulse.duration = self.duration
+        pulse.parameters = (amp, duration/4, center, derivative_ratio)
+        pulse.envelopeFunc = DRAGFunc
+        return pulse
 
 class Idle( Operation ):
     """

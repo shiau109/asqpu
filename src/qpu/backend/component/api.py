@@ -7,6 +7,8 @@ def qComponent_from_dict( info:dict )->QComponent:
         qubitObj = Transmon(info["id"])
         qubitObj.transition_freq = info["freq_xy"]
         qubitObj.sensitivity_RF = info["coupling_xy"]
+        qubitObj.sensitivity_flux = info["coupling_z"]
+        qubitObj.Ec = info["Ec"]
     else:
         qubitObj = QComponent(info["id"])
     return qubitObj

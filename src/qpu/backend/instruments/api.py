@@ -14,5 +14,6 @@ def device_from_dict( device:dict )->VDevice_abc:
         return deviceObj
 
     if device_type == "Mixer":
-        deviceObj = [DummyIQMixer(device_id)]
-        return deviceObj
+        deviceObj = DummyIQMixer(device_id)
+        deviceObj.IFfreq = device["driver"]
+        return [deviceObj]

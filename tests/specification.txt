@@ -4,19 +4,24 @@
 [
 	{"id":"q1",
 	"type":"qubit",
-	"freq_xy":5,
+	"freq_xy":4,
 	"coupling_xy":1,
+	"coupling_z":12,
+	"Ec":0.1,
 	"freq_ro":4.4},
 
 	{"id":"q2",	
 	"type":"qubit",
-	"freq_xy":5.1,
-	"coupling_xy":1,
+	"freq_xy":3.1,
+	"coupling_xy":0.8,
+	"coupling_z":10,
+	"Ec":10,
 	"freq_ro":4.5},
 	
 	{"id":"qc",
 	"type":"coupler",
 	"freq_xy":5,
+	"coupling_z":0.12,
 	"freq_ro":4.4}
 
 ]
@@ -43,13 +48,23 @@
 		"sub_channel":4,
 	},
 
-	{"id":"Mixer",
+	{"id":"ROMixer",
 		"type":"Mixer",
 		"driver":"DummyIQMixer",
-	}
+		"freq_IF": 0.017,
+	},
 
-	
+	{"id":"XY1Mixer",
+		"type":"Mixer",
+		"driver":"DummyIQMixer",
+		"freq_IF": 0.079,
+	}	
 
+	{"id":"XY2Mixer",
+		"type":"Mixer",
+		"driver":"DummyIQMixer",
+		"freq_IF": 0.12,
+	}	
 ]
 ===
 3. Physical channel
@@ -70,7 +85,7 @@
 	"port":"xy",
 	"devices":{
 		"DAC":["SDAWG_1-1","SDAWG_1-2"],
-		"Mixer":["I","Q"],
+		"Mixer":["XY1Mixer"],
 		},
 	},
 	{"id":"XY2",

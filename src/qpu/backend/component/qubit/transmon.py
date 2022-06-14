@@ -15,10 +15,9 @@ class Transmon( QComponent ):
         #self._ports = []
         self._sensitivity_flux = None
         self._sensitivity_RF = None
-        self._model = SingleReadableTransmon()
         self._transition_freq = None
-        self._pi_amp = None
-
+        self.Ec = None
+        
     def __eq__( self, other )->str:
         if isinstance(other, Transmon):
             return self.id == other.id
@@ -52,20 +51,12 @@ class Transmon( QComponent ):
 
 
     # @property
-    # def channels( self )->List[PhysicalChannel]:
-    #     """A list store the PhysicalChannel object"""
-    #     return self._channels
-    # @channels.setter
-    # def channels( self, value:List[PhysicalChannel]):
-    #     self._channels = value
-
-    @property
-    def properties( self )->SingleReadableTransmon:
-        """A object store the specification of qubit"""
-        return self._properties
-    @properties.setter
-    def properties( self, value:SingleReadableTransmon):
-        self._properties = value
+    # def properties( self )->SingleReadableTransmon:
+    #     """A object store the specification of qubit"""
+    #     return self._properties
+    # @properties.setter
+    # def properties( self, value:SingleReadableTransmon):
+    #     self._properties = value
 
 
 
