@@ -2,9 +2,7 @@
 
 Academia Sinica Quantum Processing Units
 
->Created by: ````David Lee, Teik-Hui````
-
->Contributed by: ````Jackie Hsiao, Li-Chieh, ````
+>Created by: ````Jackie Hsiao, Li-Chieh,````
 
 >Acknowledgment: ````Academia Sinica````
 
