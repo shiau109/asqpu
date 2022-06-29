@@ -13,6 +13,8 @@ class Transmon( QComponent ):
     def __init__ ( self, qid:str ):
         super().__init__( qid )
         #self._ports = []
+        self.readout_power = None
+        self.readout_freq = None
         self._sensitivity_flux = None
         self._sensitivity_RF = None
         self._transition_freq = None

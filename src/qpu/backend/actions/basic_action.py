@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Union, List
 from qpu.backend.component.qubit.transmon import Transmon
 from numpy import pi
-from pulse_generator.common_Mathfunc import DRAGFunc, constFunc, rectPulseFunc
+from pulse_generator.common_Mathfunc import DRAGFunc, constFunc, rectPulseFunc, GERPFunc
 from pulse_generator.pulse import Pulse
 
 class PhysicalAction:
@@ -21,16 +21,6 @@ class PhysicalAction:
     @id.setter    
     def id( self, value:str ):
         self._id = value
-
-    # @property
-    # def port( self )->str:
-    #     """
-    #     The port of the action shoud used.
-    #     """
-    #     return self._port
-    # @port.setter
-    # def port( self, value:str ):
-    #     self._port = value
 
     @property
     def t0( self )->Union[float,int]:
@@ -116,6 +106,7 @@ class RXYOperation( Operation ):
         center = self.t0+duration/2
         amp = (theta/pi)/s/duration
         derivative_ratio = 1/qubit.Ec
+
         pulse = Pulse()
         pulse.carrierFrequency = qubit.transition_freq
         pulse.carrierPhase = phi
@@ -158,6 +149,7 @@ class RZOperation( Operation ):
         phi = self.pars[0]
         duration = self.duration
         width = phi/pi*duration
+
         pulse = Pulse()
         pulse.carrierFrequency = 0
         pulse.carrierPhase = 0
@@ -165,9 +157,6 @@ class RZOperation( Operation ):
         pulse.parameters = (amp, width, self.t0)
         pulse.envelopeFunc = rectPulseFunc
         return pulse
-
-
-
 
 class Measurement( PhysicalAction ):
 
@@ -200,19 +189,15 @@ class Measurement( PhysicalAction ):
 
     
     def to_pulse( self, qubit:Transmon )->Pulse:
-        s = qubit.sensitivity_RF
-        theta = self.pars[0]
-        phi = self.pars[1]
+
         duration = self.duration
-        center = self.t0+duration/2
-        amp = (theta/pi)/s/duration
-        derivative_ratio = 1/qubit.Ec
+        amp = qubit.readout_power
         pulse = Pulse()
-        pulse.carrierFrequency = qubit.transition_freq
-        pulse.carrierPhase = phi
+        pulse.carrierFrequency = qubit.readout_freq
+        pulse.carrierPhase = 0
         pulse.duration = self.duration
-        pulse.parameters = (amp, duration/4, center, derivative_ratio)
-        pulse.envelopeFunc = DRAGFunc
+        pulse.parameters = (amp, duration, self.t0, 30, 30/2 )
+        pulse.envelopeFunc = GERPFunc
         return pulse
 
 class Idle( Operation ):

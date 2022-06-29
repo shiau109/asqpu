@@ -8,6 +8,7 @@
 	"coupling_xy":1,
 	"coupling_z":12,
 	"Ec":0.1,
+	"power_ro":0.2,
 	"freq_ro":4.4},
 
 	{"id":"q2",	
@@ -16,12 +17,14 @@
 	"coupling_xy":0.8,
 	"coupling_z":10,
 	"Ec":10,
+	"power_ro":0.2,
 	"freq_ro":4.5},
 	
 	{"id":"qc",
 	"type":"coupler",
 	"freq_xy":5,
 	"coupling_z":0.12,
+	"power_ro":0.2,
 	"freq_ro":4.4}
 
 ]
@@ -58,7 +61,7 @@
 		"type":"Mixer",
 		"driver":"DummyIQMixer",
 		"freq_IF": 0.079,
-	}	
+	},
 
 	{"id":"XY2Mixer",
 		"type":"Mixer",
@@ -130,6 +133,11 @@
 	{"id":"rz",
 		"type":"RZOperation",
 		"duration": "50"
+	},
+
+	{"id":"ro",
+		"type":"Measurement",
+		"duration": "400"
 	},
 
 	{"id":"swap",

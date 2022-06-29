@@ -23,8 +23,9 @@ cirBuilder.add_element( "q2", "rxy", [pi,pi/2] )
 cirBuilder.add_element( "q1", "rxy", [pi/2,0] )
 cirBuilder.add_element( "q1", "rz", [pi/2] )
 cirBuilder.add_element( "q2", "rz", [pi] )
+cirBuilder.add_element( "q2", "ro", [] )
 
-channel_output = cirBuilder.to_waveform_channel(0.001)
+channel_output = cirBuilder.to_waveform_channel(0.05)
 
 fig, ax = plt.subplots(2,1,sharex=True)
 

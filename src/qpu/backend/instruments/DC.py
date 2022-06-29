@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from qpu.backend.instruments.vir_device import VDevice_abc
 
 
-class DAC_abc( VDevice_abc, ABC ):
+class DC_abc( VDevice_abc, ABC ):
     """The abstract class as a template for all instrument with DAC function."""
     @abstractmethod
     def __init__( self, id ):
@@ -18,7 +18,7 @@ class DAC_abc( VDevice_abc, ABC ):
 
     @property
     def func_type( self )->str:
-        return "DAC"
+        return "DC"
 
     # @property
     # def dt( self ):
@@ -28,7 +28,7 @@ class DAC_abc( VDevice_abc, ABC ):
     #     self._dt
 
         
-class DummyDAC( DAC_abc ):
+class DummyDAC( DC_abc ):
     """The class is used to offline testing."""
     def __init__ ( self, id ):
         self.id = id
@@ -39,20 +39,20 @@ class DummyDAC( DAC_abc ):
         """Do nothing"""
         pass
 try:
-    from .lib import SDAWG as mySDAWG
+    import lib.SDAWG as mySDAWG
 except ImportError:
     print(f"module SDAWG can't import")
 class SDAWG( DAC_abc ):
-    def __init__ ( self, id:str ):
+    def __init__ ( self, id ):
         self.id = id
-        self._module = mySDAWG.Initiate( id )
     @property
     def module ( self ):
         return self._module
-
+    @module.setter
+    def module ( self, value ):
+        self._module = value
     def initialize ( self ):
         self._module = mySDAWG.Initiate()
-
     def get_TimeResolution( self )->float:
         """Get time resolution from SDAWG"""
         dt = mySDAWG.clock(self.module)

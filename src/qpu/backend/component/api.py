@@ -8,6 +8,8 @@ def qComponent_from_dict( info:dict )->QComponent:
         qubitObj.transition_freq = info["freq_xy"]
         qubitObj.sensitivity_RF = info["coupling_xy"]
         qubitObj.sensitivity_flux = info["coupling_z"]
+        qubitObj.readout_freq = info["freq_ro"]
+        qubitObj.readout_power = info["power_ro"]
         qubitObj.Ec = info["Ec"]
     else:
         qubitObj = QComponent(info["id"])
