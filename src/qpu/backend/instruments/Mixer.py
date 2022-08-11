@@ -13,7 +13,7 @@ class IQMixer_abc ( VDevice_abc, metaclass=ABCMeta ):
         """ Get the calibration value for the IQ mixer."""
         return NotImplemented
     @abstractmethod
-    def get_IFfreq ( self ):
+    def get_IFfreq ( self )->float:
         """ Get the IF frequency value for the IQ mixer."""
         return NotImplemented
     @property
@@ -45,7 +45,7 @@ class DummyIQMixer ( IQMixer_abc ):
     """The class is used to offline testing."""
     def __init__ ( self, id ):
         self.id = id
-        self._IFfreq = 0.079
+        self.IFfreq = 0.079
     def get_CalibrationParas( self, value=(1,90,0,0) )->Tuple[float,float,float,float]:
         """Get fake calibration parameters, the value always (1,90,0,0)."""
         return value
@@ -54,11 +54,4 @@ class DummyIQMixer ( IQMixer_abc ):
         return self.IFfreq
 
 
-if __name__ == '__main__':
-    a = DummyIQMixer("cc")
-    print(a.id, a.func_type)
-    from instruments.DAC import DummyDAC
-    b = DummyDAC("myI")
-    c = DummyDAC("myQ")
 
-    a.IF_device = (b,c)

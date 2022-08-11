@@ -7,7 +7,7 @@
 	"freq_xy":4,
 	"coupling_xy":1,
 	"coupling_z":12,
-	"Ec":0.1,
+	"Ec":0.2,
 	"power_ro":0.2,
 	"freq_ro":4.4},
 
@@ -54,19 +54,19 @@
 	{"id":"ROMixer",
 		"type":"Mixer",
 		"driver":"DummyIQMixer",
-		"freq_IF": 0.017,
+		"IF_freq": 0.017,
 	},
 
 	{"id":"XY1Mixer",
 		"type":"Mixer",
 		"driver":"DummyIQMixer",
-		"freq_IF": 0.079,
+		"IF_freq": 0.079,
 	},
 
 	{"id":"XY2Mixer",
 		"type":"Mixer",
 		"driver":"DummyIQMixer",
-		"freq_IF": 0.12,
+		"IF_freq": 0.12,
 	}	
 ]
 ===
@@ -127,7 +127,7 @@
 [
 	{"id":"rxy",
 		"type":"RXYOperation",
-		"duration": "30"
+		"duration": "20"
 	},
 
 	{"id":"rz",

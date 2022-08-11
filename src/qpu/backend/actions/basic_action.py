@@ -5,7 +5,7 @@ from numpy import pi
 from pulse_generator.common_Mathfunc import DRAGFunc, constFunc, rectPulseFunc, GERPFunc
 from pulse_generator.pulse import Pulse
 
-class PhysicalAction:
+class PhysicalAction():
     """
     Any physical interaction with the qubit
     """
@@ -13,8 +13,10 @@ class PhysicalAction:
         self._id = id
         #self._port = port
         self._t0 = 0
+
         self._duration = 10
         self._duration_unit = "dt"
+
     @property
     def id( self )->str:
         return self._id
@@ -82,6 +84,7 @@ class RXYOperation( Operation ):
 
         """
         super().__init__( id )
+        self._t0 = 0
 
     @property
     def pars( self )->List[float]:

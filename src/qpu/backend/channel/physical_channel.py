@@ -3,7 +3,7 @@ from qpu.backend.instruments.vir_device import VDevice_abc
 from typing import List
 from pulse_generator.pulse import Pulse, Waveform
 from qpu.backend.instruments.DAC import DAC_abc
-
+from qpu.backend.instruments.Mixer import IQMixer_abc
 class PhysicalChannel():
     
     #channelTypes = ["PulseRO","PulseCtrl","CWRO","CWCtrl"]
@@ -12,7 +12,7 @@ class PhysicalChannel():
 
     def __init__( self, id:str ):
         self.id = id
-        self.devices = []
+        self.devices = {}
         self.port = None
         self.pulse_sequence = []
         self._idle_value = 0
@@ -65,25 +65,28 @@ class PhysicalChannel():
         """
         #print(f"Add devices {deviceIDs} with type {deviceType} to physical channel {self.id}.")
         if isinstance(device, VDevice_abc):
-            if device not in self.devices:
-                self.devices.append(device)
-                #print(f"Device {device.id} is added successfully.")
-            else:
-                print(f"Device {device.id} is already registered.")
+            f_type = device.func_type
+            if f_type in self.devices.keys():
+                if device not in self.devices[f_type]:
+                    self.devices[f_type].append(device)
+                    #print(f"Device {device.id} is added successfully.")
+                else:
+                    print(f"Device {device.id} is already registered.")
         else: 
             print(f"Can't recognize instr.")
     
     def get_devicesID( self, deviceTypes:str=None )->str:
         IDList = []
-        for d in self.devices:
-            if deviceTypes == None or d.func_type == deviceTypes:
-                IDList.append(d.id)
-        return IDList
+        for f_type in self.devices.keys():
+            for d in self.devices[f_type]:
+                if deviceTypes == None or d.func_type == deviceTypes:
+                    IDList.append(d.id)
+            return IDList
     
     
     def get_dt( self ):
         dt = []
-        for d in self.devices:
+        for d in self.devices["DAC"]:
             if isinstance(d, DAC_abc):
                 dt.append(d.get_TimeResolution())
         if dt.count(dt[0]) == len(dt):
@@ -102,8 +105,9 @@ class PhysicalChannel():
 class DACChannel( PhysicalChannel ):
     def __init__( self, id:str ):
         super().__init__( id )
-        self.DAC_id = None
-
+        self.devices = {
+            "DAC":[]
+        }
 
     def to_waveform_dac( self, dt:float=None )->dict:
         if dt == None:
@@ -115,15 +119,19 @@ class DACChannel( PhysicalChannel ):
             appended_waveform = p.generate_signal( new_t0, dt )
             new_waveform.append( appended_waveform )
 
-        dac_id = self.DAC_id[0]
+        dac_id = self.devices["DAC"][0].id
         dac_waveform[dac_id] = new_waveform
         return dac_waveform
 
 class UpConversionChannel( PhysicalChannel ):
     def __init__( self, id:str ):
         super().__init__( id )
-        self.DAC_id_IQ = None
-    
+        self.devices = {
+            "DAC":[],
+            "ADC":[],
+            "SG":[],
+            "IQMixer":[]
+        }
     def to_waveform_dac( self, dt:float=None )->dict:
         if dt == None:
             dt = self.get_dt()
@@ -137,11 +145,21 @@ class UpConversionChannel( PhysicalChannel ):
             new_waveform_I.append( appended_I )
             new_waveform_Q.append( appended_Q )
 
-        dac_id_I = self.DAC_id_IQ[0]
-        dac_id_Q = self.DAC_id_IQ[1]
+        dac_id_I = self.devices["DAC"][0].id
+        dac_id_Q = self.devices["DAC"][1].id
         dac_waveform[dac_id_I] = new_waveform_I
         dac_waveform[dac_id_Q] = new_waveform_Q
         return dac_waveform
+
+    def get_IFFreq( self ):
+        """ Get IF frequency from Mixer setting
+        """
+        freq = []
+        for mixer in self.devices["IQMixer"]:
+            if isinstance(mixer, IQMixer_abc):
+                print(mixer.id,mixer.get_IFfreq())
+                freq.append(mixer.get_IFfreq())
+        return freq[0]
 
 class DownConversionChannel( PhysicalChannel ):
     def __init__( id:str ):

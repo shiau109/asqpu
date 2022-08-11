@@ -1,16 +1,18 @@
 
-from cProfile import label
+from argparse import Action
 from typing import List
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-from pulse_generator.pulse import Pulse
+#from pulse_generator.pulse import Pulse
+from qpu.backend.actions.basic_action import PhysicalAction, RXYOperation
 import numpy as np
-from qutip import sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj, fock_dm
-from qutip_qip.circuit import QubitCircuit, Gate, CircuitSimulator
+from qutip import sigmax, sigmay, sigmaz, basis, qeye, Qobj
+from qutip_qip.circuit import QubitCircuit, Gate
 from qutip_qip.device import ModelProcessor, Processor, Model
 from qutip_qip.compiler import GateCompiler, Instruction
-from qutip_qip.operations import gate_sequence_product
+from qpu.backend.circuit.base_circuit import PhysicalCircuit
+from qpu.backend.channel.physical_channel import UpConversionChannel
 
+from pulse_generator.pulse import convert_envtoIQ
 
 class MyModel(Model):
     """A custom Hamiltonian model with sigmax and sigmay control."""
@@ -92,17 +94,20 @@ class MyCompiler(GateCompiler):
             to implement a gate containing the control pulses.
         """
         
-        pulse = Pulse()
-        pulse = args["pulse"]
-        # gate.arg_value is the rotation angle
-        envelope = pulse.generate_envelope(0,args["dt"])
-        coeff = envelope.Y
-        # tlist = np.abs(gate.arg_value) / self.params["pulse_amplitude"]
-        coeff *= gate.arg_value/np.pi
+        action = args["action"]
+        # theta is the rotation angle
+        theta = gate.arg_value/np.pi
         if gate.name == "RX":
-            return self.generate_pulse(gate, envelope.get_xAxis(), coeff)
+            phi = 0
         elif gate.name == "RY":
-            return self.generate_pulse(gate, envelope.get_xAxis(), coeff)
+            phi = np.pi/2
+
+        action.pars = [theta,phi]
+
+        pulse = action.to_pulse( args["qubit_spec"] )
+        envelope = pulse.generate_envelope(0,args["dt"])
+        coeff = envelope.Y *np.exp(-1j*phi)
+        return self.generate_pulse(gate, envelope.get_xAxis(), coeff)
 
 
 """
@@ -242,10 +247,15 @@ def find_inv_gate_state( state:List[Gate] ):
     return gate_inv
 
 
-def get_RBseq_envelope( dt, pulse:Pulse, num_gates ):
+def get_RB_pulseSeq(base_cir:PhysicalCircuit, qubit_id:str, action_id:str, port_type:str, num_gates:int ):
+    qubit_spec = base_cir.get_qubit(qubit_id)
+    channel = base_cir.get_channel_qPort(qubit_id,port_type)
+    rxy_action = base_cir.get_action(action_id)
+
+    dt = channel.get_dt()
     myprocessor = ModelProcessor(model=MyModel(1))
     myprocessor.native_gates = ["RX","RY"]
-    mycompiler = MyCompiler(1, args={"num_samples": 20,"pulse":pulse, "dt":dt})
+    mycompiler = MyCompiler(1, args={"num_samples":20, "action":rxy_action, "qubit_spec":qubit_spec, "dt":dt})
 
     circuit_RB = QubitCircuit(1)
     circuit_RB.add_gates( get_random_gateSeq( num_gates ) )
@@ -254,57 +264,12 @@ def get_RBseq_envelope( dt, pulse:Pulse, num_gates ):
 
     circuit_RB.add_gates(inv_gate)
     tlist, coeffs = myprocessor.load_circuit(circuit_RB, compiler=mycompiler)
+
     envelope = coeffs["sx0"]+1j*coeffs["sy0"]
-    return tlist["sx0"], envelope
-
-def test_1():
-    myprocessor = ModelProcessor(model=MyModel(1))
-    myprocessor.native_gates = ["RX","RY"]
-    mycompiler = MyCompiler(1, args={"num_samples": 20})
-
-    init_qubit = basis(2)
-    circuit_RB = QubitCircuit(1)
-    circuit_RB.add_gates( get_random_gateSeq( 10 ) )
-    tlist_RB, coeffs_RB = myprocessor.load_circuit(circuit_RB, compiler=mycompiler)
-    final_qubit = decomposition(circuit_RB.gates)*init_qubit
-    print( "pulse length", len(circuit_RB.gates))
-    print(decomposition(circuit_RB.gates), "RB seq---------------")
-
-    print( final_qubit[0][0], "ground state before inverse---------------")
-
-    inv_gate = find_inv_gate(circuit_RB.gates)
-    #inv_gate = find_inv_gate_state(final_qubit)
-    #print(inv_gate[0].get_compact_qobj()*decomposition(circuit_RB.gates), "total operation---------------")
-    final_qubit = decomposition(inv_gate) *final_qubit
-    print( final_qubit[0][0], "ground state")
-
-    circuit_inv = QubitCircuit(1)
-    circuit_inv.add_gates(inv_gate)
-    tlist_inv, coeffs_inv = myprocessor.load_circuit(circuit_inv, compiler=mycompiler)
-    plt.plot(tlist_RB["sx0"],coeffs_RB["sx0"],label="sx0")
-    plt.plot(tlist_RB["sy0"],coeffs_RB["sy0"],label="sy0")
-    plt.plot(tlist_RB["sx0"][-1]+tlist_inv["sx0"],coeffs_inv["sx0"],label="sx0")
-    plt.plot(tlist_RB["sy0"][-1]+tlist_inv["sy0"],coeffs_inv["sy0"],label="sy0")
-    plt.legend()
-    plt.show()
-
-if __name__ == '__main__':
-    from pulse_generator.pulse import get_Pulse_DRAG, convert_envtoIQ
-    native_gate_pulse = get_Pulse_DRAG(20,(1,5,10,1),0,0)
-
-    tlist, envelope = get_RBseq_envelope(1, native_gate_pulse, 10)
-
-    fig, ax = plt.subplots(3,1,sharex=True)
-    ax[0].plot(tlist,envelope.real,label="sx0")
-    ax[0].plot(tlist,envelope.imag,label="sy0")
-
-    sig_I, sig_Q = convert_envtoIQ(envelope, 0.079)
-    
-    ax[1].plot(tlist,sig_I,label="sig_I")
-    ax[1].plot(tlist,sig_Q,label="sy0")
-    plt.legend()
-    plt.show()
-
-
+    if isinstance(channel, UpConversionChannel):
+        IF_freq = channel.get_IFFreq()
+        sig_I, sig_Q = convert_envtoIQ(envelope, IF_freq)
+        IQ_signal = sig_I+1j*sig_Q
+        return envelope, IQ_signal
 
 

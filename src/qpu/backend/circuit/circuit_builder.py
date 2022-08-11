@@ -9,9 +9,11 @@ from copy import deepcopy
 from numpy import ndarray, pi
 
 from qpu.backend.channel.physical_channel import UpConversionChannel, DACChannel
+## TODO might replace by qutip
 class CircuitBuilder():
     """
     組建微波脈衝序列
+    
     """
     def __init__( self, base_circuit:PhysicalCircuit ):
         self._base_circuit = base_circuit

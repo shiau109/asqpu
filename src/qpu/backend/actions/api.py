@@ -11,3 +11,4 @@ def action_from_dict( a_dict:dict ):
         
     actionObj.duration = float(a_dict["duration"])
     return actionObj
+

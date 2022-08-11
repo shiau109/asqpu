@@ -23,8 +23,6 @@ def base_circuit_from_str( specification:str )->PhysicalCircuit:
         for deviceObj in device_from_dict(device):
             baseCir.register_device( deviceObj )
 
-
-
     channel_list = eval(specification_list[6])
     for ch_dict in channel_list:
         PChObj = channel_from_dict( ch_dict )
