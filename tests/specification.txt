@@ -51,6 +51,12 @@
 		"sub_channel":4,
 	},
 
+	{"id":"DDSLO_1",
+		"type":"SG",
+		"driver":"DummySG",
+		"sub_channel":4,
+	},
+
 	{"id":"ROMixer",
 		"type":"Mixer",
 		"driver":"DummyIQMixer",
