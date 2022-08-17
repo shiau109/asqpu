@@ -2,7 +2,9 @@ from physics_model.complex_system import SingleReadableTransmon
 from qpu.backend.instruments.vir_device import VDevice_abc
 from typing import List
 import sys
-from pulse_generator.pulse import Pulse, Waveform
+from pulse_signal.pulse import Pulse
+from pulse_signal.waveform import Waveform
+
 from qpu.backend.instruments.DAC import DAC_abc
 from qpu.backend.instruments.Mixer import IQMixer_abc
 class PhysicalChannel():

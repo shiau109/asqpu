@@ -1,8 +1,6 @@
 import unittest
 import sys
 #sys.path.append(r"E:\Jacky\Github\ASQPU\src")
-sys.path.append(r"E:\Jacky\Github\pulse_generator")
-print(sys.path)
 from qpu.backend.circuit.api import to_deviceManager
 
 

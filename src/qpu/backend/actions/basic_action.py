@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Union, List
 from qpu.backend.component.qubit.transmon import Transmon
 from numpy import pi
-from pulse_generator.common_Mathfunc import DRAGFunc, constFunc, rectPulseFunc, GERPFunc
-from pulse_generator.pulse import Pulse
+from pulse_signal.common_Mathfunc import DRAGFunc, constFunc, rectPulseFunc, GERPFunc
+from pulse_signal.pulse import Pulse
 
 class PhysicalAction():
     """

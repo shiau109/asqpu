@@ -3,8 +3,8 @@ from qpu.backend.actions.basic_action import PhysicalAction, Idle
 import abc
 from typing import List, Tuple, Dict
 from qpu.backend.circuit.base_circuit import PhysicalCircuit
-from pulse_generator.pulse import Pulse, Waveform
-from pulse_generator.common_Mathfunc import DRAGFunc
+from pulse_signal.pulse import Pulse, Waveform
+from pulse_signal.common_Mathfunc import DRAGFunc
 from copy import deepcopy
 from numpy import ndarray, pi
 
