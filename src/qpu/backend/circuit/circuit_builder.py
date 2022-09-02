@@ -1,21 +1,21 @@
 from qpu.backend.component.qubit.transmon import Transmon
-from qpu.backend.actions.basic_action import PhysicalAction, Idle
+from qpu.backend.action.basic_action import PhysicalAction, Idle
 import abc
 from typing import List, Tuple, Dict
-from qpu.backend.circuit.base_circuit import PhysicalCircuit
+from qpu.backend.circuit.base_circuit import BackendCircuit
 from pulse_signal.pulse import Pulse, Waveform
 from pulse_signal.common_Mathfunc import DRAGFunc
 from copy import deepcopy
 from numpy import ndarray, pi
 
-from qpu.backend.channel.physical_channel import UpConversionChannel, DACChannel
+from qpu.backend.phychannel.physical_channel import UpConversionChannel, DACChannel
 ## TODO might replace by qutip
 class CircuitBuilder():
     """
     組建微波脈衝序列
     
     """
-    def __init__( self, base_circuit:PhysicalCircuit ):
+    def __init__( self, base_circuit:BackendCircuit ):
         self._base_circuit = base_circuit
 
         
@@ -45,7 +45,7 @@ class CircuitBuilder():
 
         base_circuit = self.base_circuit
 
-        qubit = base_circuit.get_qubit(qubit_id)
+        qubit = base_circuit.get_qComp(qubit_id)
         action = base_circuit.get_action(action_id)
         action.pars = pars
         action.t0 = self.t0_element

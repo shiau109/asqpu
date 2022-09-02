@@ -1,8 +1,8 @@
 from typing import List
-from abc import ABCMeta
+from abc import ABC
 
 
-class QComponent( metaclass=ABCMeta ):
+class QComponent( ABC ):
     """
     This class is used for record information of a Qubit-Cavity coupling system and operation method.
     """

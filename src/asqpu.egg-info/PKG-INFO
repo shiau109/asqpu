@@ -4,9 +4,7 @@ Version: 0.0.1
 Summary: A small example package
 Author: Hsiao, li-chieh
 Author-email: shiau109@gmail.com
-License: UNKNOWN
-Platform: UNKNOWN
-Requires-Python: >=3.6
+Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 
 # ASQPU
@@ -20,4 +18,3 @@ Academia Sinica Quantum Processing Units
 A python project to record the specification of the components in the quantum processing unit (QPU), and transpilation mathematical calculation to physical RF pulse for the quantum circuit and manage the instruments generating the pulses.  
 
 Need another packge "pulse generator" https://github.com/shiau109/pulse_generator in my other repository.
-

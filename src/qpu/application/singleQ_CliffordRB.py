@@ -1,16 +1,15 @@
 
 from argparse import Action
 from typing import List
-import matplotlib.pyplot as plt
 #from pulse_generator.pulse import Pulse
-from qpu.backend.actions.basic_action import PhysicalAction, RXYOperation
+from qpu.backend.action.basic_action import PhysicalAction, RXYOperation
 import numpy as np
 from qutip import sigmax, sigmay, sigmaz, basis, qeye, Qobj
 from qutip_qip.circuit import QubitCircuit, Gate
 from qutip_qip.device import ModelProcessor, Processor, Model
 from qutip_qip.compiler import GateCompiler, Instruction
 from qpu.backend.circuit.base_circuit import PhysicalCircuit
-from qpu.backend.channel.physical_channel import UpConversionChannel
+from qpu.backend.phychannel.physical_channel import UpConversionChannel
 
 from pulse_generator.pulse import convert_envtoIQ
 

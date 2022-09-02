@@ -1,6 +1,6 @@
 from qpu.backend.instruments.api import device_from_dict
-from qpu.backend.channel.api import channel_from_dict
-from qpu.backend.actions.api import action_from_dict
+from qpu.backend.phychannel.api import channel_from_dict
+from qpu.backend.action.api import action_from_dict
 
 from qpu.backend.component.api import qComponent_from_dict
 from qpu.backend.circuit.base_circuit import PhysicalCircuit
@@ -51,16 +51,23 @@ def to_deviceManager( location:str, typeList: List ):
     """
     Output the dictionary for CHAR or QPC
     """
-     
-    QPC_dict = dict.fromkeys(typeList,[])
-    for t in QPC_dict.keys():
-        QPC_dict[t] = []
+    # Initialize dict with keys from typeList, with empty list value
+    device_dict = dict.fromkeys(typeList,[])
+    for t in device_dict.keys():
+        device_dict[t] = []
 
+    # To dict {"device type":"device name (str array)"}
     device_list = eval(location)
     for device in device_list:
         for deviceType in typeList:
             if device["type"] == deviceType:
-                QPC_dict[deviceType].append(device["id"])
+                device_dict[deviceType].append(device["id"])
 
+
+    DM_dict = {
+        "ROLE":f"{}"
+    }
+    for t in device_dict.keys():
+        DM_dict[t] = ",".join(DM_dict[t])
                 
-    return QPC_dict
+    return DM_dict

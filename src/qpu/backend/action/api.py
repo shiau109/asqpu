@@ -1,4 +1,4 @@
-from qpu.backend.actions.basic_action import PhysicalAction, RXYOperation, RZOperation, Measurement
+from qpu.backend.action.basic_action import PhysicalAction, RXYOperation, RZOperation, Measurement
 
 
 def action_from_dict( a_dict:dict ):

@@ -11,6 +11,8 @@ fo.close()
 class Test_to_deviceManager(unittest.TestCase):
 
 	def test_to_deviceManager(self):
-		self.assertEqual(to_deviceManager(spec,["DAC","SG"]), {'DAC': ['SDAWG_1', 'SDAWG_2', 'SDAWG_3'], 'SG': ['DDSLO_1']})
+		self.assertEqual(to_deviceManager(spec,["DAC","SG"]), {'DAC': 'SDAWG_1,SDAWG_2,SDAWG_3', 'SG': 'DDSLO_1'})
+		test = to_deviceManager(spec,["DAC","SG"])
+		print(test)
 
 unittest.main()

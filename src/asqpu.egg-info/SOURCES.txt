@@ -3,6 +3,7 @@ setup.py
 src/asqpu.egg-info/PKG-INFO
 src/asqpu.egg-info/SOURCES.txt
 src/asqpu.egg-info/dependency_links.txt
+src/asqpu.egg-info/requires.txt
 src/asqpu.egg-info/top_level.txt
 src/physics_model/__init__.py
 src/physics_model/complex_system.py
@@ -27,10 +28,3 @@ src/qpu/backend/component/api.py
 src/qpu/backend/component/q_component.py
 src/qpu/backend/component/qubit/__init__.py
 src/qpu/backend/component/qubit/transmon.py
-src/qpu/backend/instruments/DAC.py
-src/qpu/backend/instruments/DC.py
-src/qpu/backend/instruments/Mixer.py
-src/qpu/backend/instruments/VNA.py
-src/qpu/backend/instruments/__init__.py
-src/qpu/backend/instruments/api.py
-src/qpu/backend/instruments/vir_device.py

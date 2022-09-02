@@ -54,7 +54,7 @@
 	{"id":"DDSLO_1",
 		"type":"SG",
 		"driver":"DummySG",
-		"sub_channel":4,
+		"sub_channel":2,
 	},
 
 	{"id":"ROMixer",
@@ -84,7 +84,7 @@
 	"port":"ro",
 	"devices":{
 		"DAC":["SDAWG_3-1","SDAWG_3-2"],
-		"Mixer":["I","Q"],
+		"Mixer":["ROMixer"],
 		"ADC":["SDDIG_2-1"]
 		}
 	},

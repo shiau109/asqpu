@@ -9,6 +9,7 @@ fo.close()
 
 # Input arg
 qubit_id = "q1"
+
 action_id = "rxy"
 base_cir = base_circuit_from_str(spec)
 port_type = "xy"

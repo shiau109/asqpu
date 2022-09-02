@@ -1,60 +1,62 @@
 from qpu.backend.component.q_component import QComponent
-from qpu.backend.channel.physical_channel import PhysicalChannel
-from qpu.backend.actions.basic_action import PhysicalAction
-from qpu.backend.instruments.vir_device import VDevice_abc
-
+from qpu.backend.phychannel.physical_channel import PhysicalChannel
+from qpu.backend.action.basic_action import PhysicalAction
+from qpu.backend import phychannel
 from pandas import DataFrame
 import abc
-from typing import List, Tuple
+from typing import List, Tuple, Union, Dict
 
 from numpy import logical_and
 
-class PhysicalCircuit():
+class BackendCircuit():
     """
     紀錄元件specification與使用的channel
     """
     def __init__( self ):
-        self._qubits = []
+        self._quantum_components = []
         self._channels = []
         self._actions = []        
         self._devices = []        
 
-    def register_qubit( self, qubit:QComponent ):
+    def register_qComp( self, qcomp:QComponent ):
         """
         
         Args:
-            qubit: the type should be "PhysicalQubit"
+            qcomp: Quantum component
         """
-        if isinstance(qubit,QComponent):
-           self._qubits.append(qubit)
+        if isinstance(qcomp,QComponent):
+           self._quantum_components.append(qcomp)
         else:
             raise TypeError()
 
-    def get_IDs_qubits( self )->str:
+    def get_IDs_qComps( self )->List[str]:
         idList = []
-        for q in self.qubits:
+        for q in self._quantum_components:
             idList.append(q.id)
         return idList
 
 
-    def get_qubit( self, id:str )->QComponent:
+    def get_qComp( self, name:str )->QComponent:
         """
-        Get qubit by its ID.
+        Get Quantum component by its ID.
         """
-        for q in self.qubits:
-            if q == id:
+        for q in self._quantum_components:
+            if q == name:
                 return q
         return None
 
 
-    def register_channel( self, channel:PhysicalChannel ):
+    def register_channel( self, info:Dict ):
         """
         
         Args:
             channel: the type should be "PhysicalChannel"
         """
-        if isinstance(channel,PhysicalChannel):
-           self._channels.append(channel)
+        # if isinstance(info,PhysicalChannel):
+        #    self._channels.append(info)
+        if isinstance(info,Dict):
+           new_channel = phychannel.from_dict(info)
+           self._channels.append(new_channel)
         else:
             raise TypeError()
 
@@ -76,48 +78,6 @@ class PhysicalCircuit():
         return None
 
 
-    def register_device( self, device:VDevice_abc ):
-        """
-        
-        Args:
-            device: the type should be "VDevice_abc"
-        """
-        if isinstance(device,VDevice_abc):
-           self._devices.append(device)
-        else:
-            raise TypeError()
-            
-    def get_device( self, id:str )->VDevice_abc:
-        """
-        Get device by its ID.
-        """
-        for d in self.devices:
-            if d == id:
-                return d
-    def get_deviceByType( self, type:str=None )->List[VDevice_abc]:
-        """
-        Get devices by type, default is all.
-        """
-        d_list = []
-        for channel in self.channels:
-            for device in channel.devices:
-                if type == None:
-                    d_list.append(device)
-                elif type == device.func_type:
-                    d_list.append(device)
-        return d_list
-
-    def get_IDs_devices( self, type:str=None )->List[str]:
-        """
-        Get devices id by type, default is all.
-        """
-        id_list = []
-        for device in self.devices:
-            if type == None:
-                id_list.append(device.id)
-            elif type == device.func_type:
-                id_list.append(device.id)
-        return id_list
 
     def get_channel_qPort( self, q_id:str, port:str )->PhysicalChannel:
         """
@@ -174,6 +134,13 @@ class PhysicalCircuit():
             idList.append(action.id)
         return idList
 
+    def get_devicesCMD( self )->dict:
+        idList = []
+        for action in self.actions:
+            idList.append(action.id)
+        return idList
+
+    
 
 
     @property
@@ -221,3 +188,45 @@ class PhysicalCircuit():
 
 
 
+    # def register_device( self, device ):
+    #     """
+        
+    #     Args:
+    #         device: the type should be "VDevice_abc"
+    #     """
+    #     if isinstance(device,VDevice_abc):
+    #        self._devices.append(device)
+    #     else:
+    #         raise TypeError()
+            
+    # def get_device( self, id:str )->VDevice_abc:
+    #     """
+    #     Get device by its ID.
+    #     """
+    #     for d in self.devices:
+    #         if d == id:
+    #             return d
+    # def get_deviceByType( self, type:str=None )->List[VDevice_abc]:
+    #     """
+    #     Get devices by type, default is all.
+    #     """
+    #     d_list = []
+    #     for channel in self.channels:
+    #         for device in channel.devices:
+    #             if type == None:
+    #                 d_list.append(device)
+    #             elif type == device.func_type:
+    #                 d_list.append(device)
+    #     return d_list
+
+    # def get_IDs_devices( self, type:str=None )->List[str]:
+    #     """
+    #     Get devices id by type, default is all.
+    #     """
+    #     id_list = []
+    #     for device in self.devices:
+    #         if type == None:
+    #             id_list.append(device.id)
+    #         elif type == device.func_type:
+    #             id_list.append(device.id)
+    #     return id_list
