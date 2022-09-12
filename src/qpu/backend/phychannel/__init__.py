@@ -4,17 +4,22 @@ from qpu.backend.phychannel.physical_channel import PhysicalChannel, UpConversio
 def from_dict( channel:dict )->PhysicalChannel:
     category = channel["type"]
     name = channel["id"]
-    if category == "upconversion":    
-        PChObj = UpConversionChannel(name)
-        DAC_id_IQ = channel["devices"]["DAC"]
-        if len(DAC_id_IQ) == 2:
-            PChObj.DAC_id_IQ = DAC_id_IQ
-    elif category == "dir_output":    
-        PChObj = DACChannel(name)
-        PChObj.DAC_id = channel["devices"]["DAC"]
-    else:
-        print("channel category not defined")
-        return None
-    print("api",PChObj.name,type(PChObj))
+    #print("api", name, category)
+    devices = channel["devices"]
+    match category:
+        case "upconversion":    
+            PChObj = UpConversionChannel(name)
+            PChObj.devices = devices
+        case "dir_output":    
+            PChObj = DACChannel(name)
+            PChObj.devices = devices
+        case _:
+            print("channel category not defined")
+            return None
     PChObj.port = channel["port"]
+
+    print(f"api name: {PChObj.name} port:{PChObj.port} class: {type(PChObj)}")
+
     return PChObj
+
+    

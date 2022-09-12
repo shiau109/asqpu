@@ -8,31 +8,31 @@ from qutip import sigmax, sigmay, sigmaz, basis, qeye, Qobj
 from qutip_qip.circuit import QubitCircuit, Gate
 from qutip_qip.device import ModelProcessor, Processor, Model
 from qutip_qip.compiler import GateCompiler, Instruction
-from qpu.backend.circuit.base_circuit import PhysicalCircuit
+from qpu.backend.circuit.backendcircuit import BackendCircuit
 from qpu.backend.phychannel.physical_channel import UpConversionChannel
 
 from pulse_generator.pulse import convert_envtoIQ
 
-class MyModel(Model):
-    """A custom Hamiltonian model with sigmax and sigmay control."""
-    def get_control(self, label):
-        """
-        Get an available control Hamiltonian.
-        For instance, sigmax control on the zeroth qubits is labeled "sx0".
+# class MyModel(Model):
+#     """A custom Hamiltonian model with sigmax and sigmay control."""
+#     def get_control(self, label):
+#         """
+#         Get an available control Hamiltonian.
+#         For instance, sigmax control on the zeroth qubits is labeled "sx0".
 
-        Args:
-            label (str): The label of the Hamiltonian
+#         Args:
+#             label (str): The label of the Hamiltonian
 
-        Returns:
-            The Hamiltonian and target qubits as a tuple (qutip.Qobj, list).
-        """
-        targets = int(label[2:])
-        if label[:2] == "sx":
-            return 2 * np.pi * sigmax() / 2, [targets]
-        elif label[:2] == "sy":
-            return 2 * np.pi * sigmay() / 2, [targets]
-        else:
-            raise NotImplementError("Unknown control.")
+#         Returns:
+#             The Hamiltonian and target qubits as a tuple (qutip.Qobj, list).
+#         """
+#         targets = int(label[2:])
+#         if label[:2] == "sx":
+#             return 2 * np.pi * sigmax() / 2, [targets]
+#         elif label[:2] == "sy":
+#             return 2 * np.pi * sigmay() / 2, [targets]
+#         else:
+#             raise NotImplementError("Unknown control.")
 
 
 class MyCompiler(GateCompiler):
@@ -246,14 +246,14 @@ def find_inv_gate_state( state:List[Gate] ):
     return gate_inv
 
 
-def get_RB_pulseSeq(base_cir:PhysicalCircuit, qubit_id:str, action_id:str, port_type:str, num_gates:int ):
-    qubit_spec = base_cir.get_qubit(qubit_id)
+def get_RB_pulseSeq(base_cir:BackendCircuit, qubit_id:str, action_id:str, port_type:str, num_gates:int ):
+    qubit_spec = base_cir.get_qComp(qubit_id)
     channel = base_cir.get_channel_qPort(qubit_id,port_type)
     rxy_action = base_cir.get_action(action_id)
 
     dt = channel.get_dt()
-    myprocessor = ModelProcessor(model=MyModel(1))
-    myprocessor.native_gates = ["RX","RY"]
+    # myprocessor = ModelProcessor(model=MyModel(1))
+    # myprocessor.native_gates = ["RX","RY"]
     mycompiler = MyCompiler(1, args={"num_samples":20, "action":rxy_action, "qubit_spec":qubit_spec, "dt":dt})
 
     circuit_RB = QubitCircuit(1)
@@ -262,7 +262,8 @@ def get_RB_pulseSeq(base_cir:PhysicalCircuit, qubit_id:str, action_id:str, port_
     inv_gate = find_inv_gate(circuit_RB.gates)
 
     circuit_RB.add_gates(inv_gate)
-    tlist, coeffs = myprocessor.load_circuit(circuit_RB, compiler=mycompiler)
+    tlist, coeffs = mycompiler.compile(circuit_RB)
+    # tlist, coeffs = myprocessor.load_circuit(circuit_RB, compiler=mycompiler)
 
     envelope = coeffs["sx0"]+1j*coeffs["sy0"]
     if isinstance(channel, UpConversionChannel):

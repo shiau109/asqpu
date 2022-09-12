@@ -6,17 +6,42 @@ from pandas import DataFrame
 import abc
 from typing import List, Tuple, Union, Dict
 
-from numpy import logical_and
+from numpy import array, logical_and
+
+
+
+def xy_control( coeffs_map, target_index ):
+    sx_exist = False
+    sy_exist = False
+    for label in coeffs_map.keys():
+        label_index = int(label[2:])
+        label_action = label[:2]
+        if label_index == target_index:
+            match label_action:
+                    case "sx":
+                        sx_exist = True
+                        sx_coeff = array(coeffs_map[label])
+                    case "sy": 
+                        sy_exist = True
+                        sy_coeff = array(coeffs_map[label])
+                    case _: pass
+    if sx_exist and sy_exist:
+        rf_envelop = sx_coeff +1j*sy_coeff
+        return rf_envelop
+
+
 
 class BackendCircuit():
     """
     紀錄元件specification與使用的channel
     """
     def __init__( self ):
-        self._quantum_components = []
+        self._qComps = []
         self._channels = []
         self._actions = []        
-        self._devices = []        
+        self._devices = []
+        
+        self.q_reg = None      
 
     def register_qComp( self, qcomp:QComponent ):
         """
@@ -25,13 +50,13 @@ class BackendCircuit():
             qcomp: Quantum component
         """
         if isinstance(qcomp,QComponent):
-           self._quantum_components.append(qcomp)
+           self._qComps.append(qcomp)
         else:
             raise TypeError()
 
     def get_IDs_qComps( self )->List[str]:
         idList = []
-        for q in self._quantum_components:
+        for q in self._qComps:
             idList.append(q.id)
         return idList
 
@@ -40,7 +65,7 @@ class BackendCircuit():
         """
         Get Quantum component by its ID.
         """
-        for q in self._quantum_components:
+        for q in self._qComps:
             if q == name:
                 return q
         return None
@@ -141,6 +166,27 @@ class BackendCircuit():
         return idList
 
     
+    def load_coeff( self, coeffs_map:dict ):
+
+        dac_output = {}
+        
+        for qi, qname in enumerate(self.q_reg["qubit"]):
+            print(qname)
+            phyCh = self.get_channel_qPort(qname,"xy")
+            if phyCh != None:
+                print(phyCh)
+                envelope = xy_control(coeffs_map, qi)
+                dac_output[phyCh.name] = phyCh.dac_output(envelope, 0.08)
+        return dac_output
+
+
+    # def to_instrPara():
+
+    #     pass
+    #     return
+
+
+
 
 
     @property
@@ -150,12 +196,12 @@ class BackendCircuit():
     def qubits( self, value:List[QComponent]):
         self._qubits = value
 
-    @property
-    def devices( self )->List[VDevice_abc]:
-        return self._devices
-    @devices.setter
-    def devices( self, value:List[VDevice_abc]):
-        self._devices = value
+    # @property
+    # def devices( self )->List[VDevice_abc]:
+    #     return self._devices
+    # @devices.setter
+    # def devices( self, value:List[VDevice_abc]):
+    #     self._devices = value
 
     @property
     def channels( self )->List[PhysicalChannel]:
@@ -230,3 +276,6 @@ class BackendCircuit():
     #         elif type == device.func_type:
     #             id_list.append(device.id)
     #     return id_list
+
+
+

@@ -2,7 +2,7 @@ from qpu.backend.component.qubit.transmon import Transmon
 from qpu.backend.action.basic_action import PhysicalAction, Idle
 import abc
 from typing import List, Tuple, Dict
-from qpu.backend.circuit.base_circuit import BackendCircuit
+from qpu.backend.circuit.backendcircuit import BackendCircuit
 from pulse_signal.pulse import Pulse, Waveform
 from pulse_signal.common_Mathfunc import DRAGFunc
 from copy import deepcopy

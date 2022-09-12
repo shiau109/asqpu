@@ -3,7 +3,7 @@ from qpu.backend.phychannel.api import channel_from_dict
 from qpu.backend.action.api import action_from_dict
 
 from qpu.backend.component.api import qComponent_from_dict
-from qpu.backend.circuit.base_circuit import PhysicalCircuit
+from qpu.backend.circuit.backendcircuit import PhysicalCircuit
 from pandas import DataFrame
 from typing import List
 

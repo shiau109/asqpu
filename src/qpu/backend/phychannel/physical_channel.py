@@ -6,6 +6,11 @@ from pulse_signal.waveform import Waveform
 from abc import ABC, abstractproperty, abstractmethod
 from numpy import ndarray
 
+
+
+
+
+
 class PhysicalChannel():
     
     #channelTypes = ["PulseRO","PulseCtrl","CWRO","CWCtrl"]
@@ -17,7 +22,6 @@ class PhysicalChannel():
         self.devices = {}
         self.port = None
         #self.pulse_sequence = []
-        self._idle_value = 0
 
     def __contains__( self )->str:
         return self.name
@@ -106,7 +110,7 @@ class WaveformChannel( ABC, PhysicalChannel ):
         # self.devices = {
         #     "DAC":[]
         # }
-        self.dt = dt
+        # self.dt = dt
 
     @abstractmethod
     def dac_output( self, dt:float=None )->dict:
@@ -115,44 +119,63 @@ class WaveformChannel( ABC, PhysicalChannel ):
 
 class DACChannel( WaveformChannel ):
     def __init__( self, name:str, dt:float=1. ):
-        super().__init__( name )
-        # self.devices = {
-        #     "DAC":[]
-        # }
+        super().__init__( name, dt )
+        self.devices = {
+            "DAC":[]
+        }
         self.dt = dt
 
     def dac_output( self, signal:ndarray, dt:float=None )->dict:
         if dt == None:
             dt = self.dt
-        signal = {}
-        new_waveform = Waveform( 0, dt, signal )
+        dac_name = self.devices["DAC"][0]
 
-        dac_id = self.devices["DAC"][0]
-        signal[dac_id] = new_waveform
-        return signal
+        dac_out = {}
+        dac_out[dac_name] = signal
+        return dac_out
 
 class UpConversionChannel( WaveformChannel ):
-    def __init__( self, id:str ):
-        super().__init__( id )
-        # self.devices = {
-        #     "DAC":[],
-        #     "ADC":[],
-        #     "SG":[],
-        #     "IQMixer":[]
-        # }
-    def dac_output( self, signalRF:ndarray, dt:float=None, freqIF:float=None, IQMixer:Tuple=None )->dict:
+    def __init__( self, name:str, dt:float=1. ):
+        super().__init__( name, dt )
+        self.devices = {
+            "DAC":[None,None],
+            "SG":[None],
+        }
+        self.pComps={
+            "IQMixer":{
+                "calibration":(1,90,0,0),
+            }
+        }
+        self.freqIF = 0.08
+    def dac_output( self, signalRF:ndarray, freqIF:float=None, IQMixer:Tuple=None )->dict:
+        # if dt == None:
+        #     dt = self.dt
+        print(type(signalRF))
+        if freqIF == None: freqIF = self.freqIF
+        else: self.freqIF = freqIF
+        
+        if IQMixer == None: IQMixer = self.IQMixer
+        else : IQMixer = self.IQMixer
+
+        if type(signalRF) != type(None):
+            signal_I, signal_Q = upConversion_IQ( signalRF, freqIF, IQMixer )
+        else:
+            signal_I = None
+            signal_Q = None
+        dac_name = self.devices["DAC"]
+        dac_out = {}
+        dac_out[dac_name[0]] = signal_I
+        dac_out[dac_name[1]] = signal_Q
+        return dac_out
+
+    def devices_output( self, signalRF:ndarray, freqIF:float=None, IQMixer:Tuple=(1,90,0,0) )->dict:
         if dt == None:
             dt = self.dt
-        signalIQ = {}
+        
+        device_para = {}
 
-        signal_I, signal_Q = upConversion_IQ( signalRF, dt, freqIF, IQMixer )
-
-
-        dac_id_I = self.devices["DAC"][0]
-        dac_id_Q = self.devices["DAC"][1]
-        signalIQ[dac_id_I] = signal_I
-        signalIQ[dac_id_Q] = signal_Q
-        return signalIQ
+        
+        return dac_out
 
 
 # class DownConversionChannel( PhysicalChannel ):
@@ -168,3 +191,6 @@ class UpConversionChannel( WaveformChannel ):
 #             return dt[0]
 #         else:
 #             raise ValueError("dt are not the same.")
+
+
+
