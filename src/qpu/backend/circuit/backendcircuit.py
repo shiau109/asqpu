@@ -1,16 +1,15 @@
 from qpu.backend.component.q_component import QComponent
-from qpu.backend.phychannel.physical_channel import PhysicalChannel
-from qpu.backend.action.basic_action import PhysicalAction
+from qpu.backend.phychannel.physical_channel import PhysicalChannel, UpConversionChannel, DACChannel
 from qpu.backend import phychannel
 from pandas import DataFrame
 import abc
 from typing import List, Tuple, Union, Dict
 
-from numpy import array, logical_and
+from numpy import array, logical_and, ndarray
 
 
 
-def xy_control( coeffs_map, target_index ):
+def control_xy( coeffs_map, target_index ):
     sx_exist = False
     sy_exist = False
     for label in coeffs_map.keys():
@@ -28,6 +27,37 @@ def xy_control( coeffs_map, target_index ):
     if sx_exist and sy_exist:
         rf_envelop = sx_coeff +1j*sy_coeff
         return rf_envelop
+    
+
+def measurement_ro( coeffs_map, target_index ):
+    ro_exist = False
+    for label in coeffs_map.keys():
+        label_index = int(label[2:])
+        label_action = label[:2]
+        if label_index == target_index:
+            match label_action:
+                    case "ro":
+                        ro_exist = True
+                        ro_coeff = array(coeffs_map[label])
+                    case _: pass
+    if ro_exist :
+        rf_envelop = ro_coeff 
+        return rf_envelop
+
+def control_z( coeffs_map, target_index ):
+    z_exist = False
+    for label in coeffs_map.keys():
+        label_index = int(label[2:])
+        label_action = label[:2]
+        if label_index == target_index:
+            match label_action:
+                    case "sz":
+                        z_exist = True
+                        z_coeff = array(coeffs_map[label])
+                    case _: pass
+    if z_exist :
+        rf_envelop = z_coeff 
+        return rf_envelop
 
 
 
@@ -38,7 +68,7 @@ class BackendCircuit():
     def __init__( self ):
         self._qComps = []
         self._channels = []
-        self._actions = []        
+        #self._actions = []        
         self._devices = []
         
         self.q_reg = None      
@@ -114,6 +144,7 @@ class BackendCircuit():
         related_channel_id = None
         for channel_id in q_id_channels:
             channel = self._get_channel_id(channel_id)
+            
             if channel.port == port:
                 related_channel_id = channel_id
         return self._get_channel_id(related_channel_id)
@@ -124,6 +155,8 @@ class BackendCircuit():
         port_type = self.qa_relation["port_type"].loc[myfilter].to_list()[0]
 
         return port_type
+
+
     def _get_channel_id( self, id:str )->PhysicalChannel:
         """
         Get channel by its ID.
@@ -133,59 +166,80 @@ class BackendCircuit():
                 return ch
         return None
 
-    def register_action( self, action:PhysicalAction ):
-        """
-        
-        Args:
-            action: the type should be "PhysicalAction"
-        """
-        if isinstance(action,PhysicalAction):
-           self._actions.append(action)
-        else:
-            raise TypeError()
 
-    def get_action( self, id:str )->PhysicalAction:
-        """
-        Get action by its ID.
-        """
-        for action in self.actions:
-            if action == id:
-                return action
-        return None
-
-    def get_IDs_actions( self )->str:
-        idList = []
-        for action in self.actions:
-            idList.append(action.id)
-        return idList
-
-    def get_devicesCMD( self )->dict:
-        idList = []
-        for action in self.actions:
-            idList.append(action.id)
-        return idList
 
     
-    def load_coeff( self, coeffs_map:dict ):
-
-        dac_output = {}
+    def translate_channel_output( self, coeffs_map:dict ):
+        """
+        Input time dependent coeff map from qutip, output is RF envelope signal.
+        """
+        activated_channels = []
+        channel_output = {}
         
         for qi, qname in enumerate(self.q_reg["qubit"]):
-            print(qname)
+            qubit = self.get_qComp(qname)
             phyCh = self.get_channel_qPort(qname,"xy")
             if phyCh != None:
-                print(phyCh)
-                envelope = xy_control(coeffs_map, qi)
-                dac_output[phyCh.name] = phyCh.dac_output(envelope, 0.08)
-        return dac_output
+                envelope_rf = control_xy(coeffs_map, qi)
+                freq_carrier = qubit.transition_freq
+                if type(envelope_rf) != type(None):
+                    channel_output[phyCh.name] = (envelope_rf,freq_carrier)
+
+            phyCh = self.get_channel_qPort(qname,"ro_in")
+            if phyCh != None:
+                envelope_rf = measurement_ro(coeffs_map, qi)
+                freq_carrier = qubit.readout_freq
+                if type(envelope_rf) != type(None):
+                    channel_output[phyCh.name] = (envelope_rf,freq_carrier)
+
+            phyCh = self.get_channel_qPort(qname,"z")
+            if phyCh != None:
+                envelope_rf = control_z(coeffs_map, qi)
+                freq_carrier = 0
+                if type(envelope_rf) != type(None):
+                    channel_output[phyCh.name] = (envelope_rf,freq_carrier)
+
+        return channel_output
 
 
-    # def to_instrPara():
+    def devices_setting( self, coeffs_map ):
+        channel_output = self.translate_channel_output(coeffs_map)
+        devices_setting_all = {
+            "DAC":{},
+            "SG":{},
+        }
+        
+        for chname in channel_output.keys():
+            phyCh = self.get_channel(chname)
+            print("Get setting from channel",chname)
 
-    #     pass
-    #     return
+            if isinstance(phyCh, UpConversionChannel):
+                envelope_rf = channel_output[chname][0]
+                freq_carrier = channel_output[chname][1]
+                devices_output =  phyCh.devices_setting( envelope_rf, freq_carrier )
+
+            if isinstance(phyCh, DACChannel):
+                envelope_rf = channel_output[chname][0]
+
+                devices_output =  phyCh.devices_setting( envelope_rf )
+
+            if "DAC" in devices_output.keys():
+                for dname in devices_output["DAC"].keys():  
+                    dac_output = devices_output["DAC"][dname]
+                    if dname not in devices_setting_all["DAC"].keys():
+                        devices_setting_all["DAC"][dname] = dac_output
+                    else:
+                        if type(dac_output) != type(None):
+                            devices_setting_all["DAC"][dname] += dac_output
+                            
+            if "SG" in devices_output.keys():
+                for dname in devices_output["SG"].keys():  
+                    sg_output = devices_output["SG"][dname]
+                    if dname not in devices_setting_all["SG"].keys():
+                        devices_setting_all["SG"][dname] = sg_output
 
 
+        return devices_setting_all
 
 
 
@@ -196,13 +250,6 @@ class BackendCircuit():
     def qubits( self, value:List[QComponent]):
         self._qubits = value
 
-    # @property
-    # def devices( self )->List[VDevice_abc]:
-    #     return self._devices
-    # @devices.setter
-    # def devices( self, value:List[VDevice_abc]):
-    #     self._devices = value
-
     @property
     def channels( self )->List[PhysicalChannel]:
         return self._channels
@@ -210,12 +257,6 @@ class BackendCircuit():
     def channels( self, value:List[PhysicalChannel]):
         self._channels = value
 
-    @property
-    def actions( self )->List[PhysicalAction]:
-        return self._actions
-    @actions.setter
-    def actions( self, value:List[PhysicalAction]):
-        self._actions = value
 
     @property
     def qc_relation( self )->DataFrame:

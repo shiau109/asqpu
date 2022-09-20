@@ -1,7 +1,7 @@
 from physics_model.complex_system import SingleReadableTransmon
 from typing import List, Tuple
 import sys
-from pulse_signal.digital_mixer import upConversion_IQ
+from pulse_signal.digital_mixer import upConversion_IQ, upconversion_LO
 from pulse_signal.waveform import Waveform
 from abc import ABC, abstractproperty, abstractmethod
 from numpy import ndarray
@@ -125,15 +125,20 @@ class DACChannel( WaveformChannel ):
         }
         self.dt = dt
 
-    def dac_output( self, signal:ndarray, dt:float=None )->dict:
-        if dt == None:
-            dt = self.dt
-        dac_name = self.devices["DAC"][0]
+    def dac_output( self, signal:ndarray )->dict:
 
+        dac_name = self.devices["DAC"][0]
         dac_out = {}
         dac_out[dac_name] = signal
         return dac_out
 
+    def devices_setting( self, signal:ndarray, )->dict:
+
+        device_setting = {
+            "DAC": self.dac_output(signal),
+        }
+        
+        return device_setting
 class UpConversionChannel( WaveformChannel ):
     def __init__( self, name:str, dt:float=1. ):
         super().__init__( name, dt )
@@ -141,24 +146,28 @@ class UpConversionChannel( WaveformChannel ):
             "DAC":[None,None],
             "SG":[None],
         }
-        self.pComps={
+        self.comps={
             "IQMixer":{
                 "calibration":(1,90,0,0),
             }
         }
         self.freqIF = 0.08
-    def dac_output( self, signalRF:ndarray, freqIF:float=None, IQMixer:Tuple=None )->dict:
+        
+    def dac_output( self, signalRF:ndarray )->dict:
+        """
+        Time dependet DAC output, translate from rf signal
+        """
         # if dt == None:
         #     dt = self.dt
-        print(type(signalRF))
-        if freqIF == None: freqIF = self.freqIF
-        else: self.freqIF = freqIF
-        
-        if IQMixer == None: IQMixer = self.IQMixer
-        else : IQMixer = self.IQMixer
+        # if freqIF == None: freqIF = self.freqIF
+        # else: self.freqIF = freqIF
+
+        # if IQMixer == None: IQMixer = self.comps["IQMixer"]["calibration"]
+        # else : IQMixer = self.IQMixer
+        IQMixer = self.comps["IQMixer"]["calibration"]
 
         if type(signalRF) != type(None):
-            signal_I, signal_Q = upConversion_IQ( signalRF, freqIF, IQMixer )
+            signal_I, signal_Q = upConversion_IQ( signalRF, self.freqIF, IQMixer, suppress_leakage=False )
         else:
             signal_I = None
             signal_Q = None
@@ -166,16 +175,23 @@ class UpConversionChannel( WaveformChannel ):
         dac_out = {}
         dac_out[dac_name[0]] = signal_I
         dac_out[dac_name[1]] = signal_Q
+
         return dac_out
 
-    def devices_output( self, signalRF:ndarray, freqIF:float=None, IQMixer:Tuple=(1,90,0,0) )->dict:
-        if dt == None:
-            dt = self.dt
-        
-        device_para = {}
+    def devices_setting( self, signalRF:ndarray, freq_carrier:float )->dict:
 
-        
-        return dac_out
+        sg_name = self.devices["SG"][0]
+        sg_out = {
+            sg_name:{
+                "freq": upconversion_LO( freq_carrier, self.freqIF ),
+            }
+        }
+        dac_out = self.dac_output(signalRF)
+        device_setting = {
+            "DAC": dac_out,
+            "SG": sg_out
+        }
+        return device_setting
 
 
 # class DownConversionChannel( PhysicalChannel ):

@@ -5,6 +5,7 @@
 	"coupling_xy":1,
 	"coupling_z":12,
 	"Ec":0.2,
+	"idle_z":0.1,
 	"power_ro":0.2,
 	"freq_ro":4.4},
 
@@ -14,6 +15,7 @@
 	"coupling_xy":0.8,
 	"coupling_z":10,
 	"Ec":10,
+	"idle_z":-0.1,
 	"power_ro":0.2,
 	"freq_ro":4.5},
 	

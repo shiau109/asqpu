@@ -1,7 +1,7 @@
 import unittest
 import sys
 #sys.path.append(r"E:\Jacky\Github\ASQPU\src")
-from qpu.backend.circuit.api import to_deviceManager
+from abandon.api import to_deviceManager
 
 
 fo = open("./tests/specification_deviceOnly.txt", "r")

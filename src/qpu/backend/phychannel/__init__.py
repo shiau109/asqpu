@@ -5,14 +5,17 @@ def from_dict( channel:dict )->PhysicalChannel:
     category = channel["type"]
     name = channel["id"]
     #print("api", name, category)
-    devices = channel["devices"]
+    
     match category:
         case "upconversion":    
             PChObj = UpConversionChannel(name)
-            PChObj.devices = devices
+            PChObj.devices = channel["devices"]
+            PChObj.comps = channel["comps"]
+            PChObj.freqIF = channel["freqIF"] 
+
         case "dir_output":    
             PChObj = DACChannel(name)
-            PChObj.devices = devices
+            PChObj.devices = channel["devices"]
         case _:
             print("channel category not defined")
             return None
