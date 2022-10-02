@@ -1,15 +1,10 @@
 from math import e
-import qpu.backend.phychannel as pch
-from qutip import sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj
-from qutip_qip.operations import Gate #Measurement in 0.3.X qutip_qip
-from qutip_qip.circuit import QubitCircuit
-from qutip_qip.compiler import GateCompiler, Instruction
+import qpu.backend.channel as pch
 import numpy as np
 import qpu.backend.circuit.backendcircuit as bec
 import qpu.backend.component as qcp
 from pandas import DataFrame
-import pulse_signal.common_Mathfunc as ps 
-import qpu.backend.circuit.compiler as becc
+
 def read_phych():
     fo = open("./tests/wiring.txt", "r")
     spec = fo.read()

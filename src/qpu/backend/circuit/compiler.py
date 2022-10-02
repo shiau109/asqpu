@@ -1,4 +1,4 @@
-import qpu.backend.phychannel as pch
+import qpu.backend.channel as pch
 from qutip import sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj
 from qutip_qip.operations import Gate #Measurement in 0.3.X qutip_qip
 from qutip_qip.circuit import QubitCircuit
@@ -8,7 +8,6 @@ import qpu.backend.circuit.backendcircuit as bec
 import qpu.backend.component as qcp
 from pandas import DataFrame
 import pulse_signal.common_Mathfunc as ps 
-
 
 class SQCompiler(GateCompiler):
     """Custom compiler for generating pulses from gates using the base class 
@@ -208,3 +207,79 @@ class SQCompiler(GateCompiler):
             ]
             #print("compile measurement ",gate.name, tlist)
             return [Instruction(gate, tlist=tlist, pulse_info=pulse_info)]
+
+
+    def coeff_to_waveform( self, circuit:QubitCircuit ):
+
+        compiled_data = self.compile(circuit, schedule_mode=False)
+
+        tlist_map = compiled_data[0]
+        coeffs_map = compiled_data[1]
+        waveform_channel = []
+
+        for qi in range(circuit.N):
+            envelope_rf = control_xy(coeffs_map, qi)
+            if type(envelope_rf) != type(None):
+                waveform_channel.append( (qi,"xy",envelope_rf) )
+
+            envelope_rf = control_z(coeffs_map, qi)
+            if type(envelope_rf) != type(None):
+                waveform_channel.append( (qi,"z",envelope_rf) )
+
+            envelope_rf = measurement_ro(coeffs_map, qi)
+            if type(envelope_rf) != type(None):
+                waveform_channel.append( (qi,"ro_in",envelope_rf) )
+        return waveform_channel
+
+def control_xy( coeffs_map, target_index ):
+    sx_exist = False
+    sy_exist = False
+    for label in coeffs_map.keys():
+        label_index = int(label[2:])
+        label_action = label[:2]
+        if label_index == target_index:
+            match label_action:
+                    case "sx":
+                        sx_exist = True
+                        sx_coeff = np.array(coeffs_map[label])
+                    case "sy": 
+                        sy_exist = True
+                        sy_coeff = np.array(coeffs_map[label])
+                    case _: pass
+    if sx_exist and sy_exist:
+        rf_envelop = sx_coeff +1j*sy_coeff
+        return rf_envelop
+    return None
+
+def measurement_ro( coeffs_map, target_index ):
+    ro_exist = False
+    for label in coeffs_map.keys():
+        label_index = int(label[2:])
+        label_action = label[:2]
+        if label_index == target_index:
+            match label_action:
+                    case "ro":
+                        ro_exist = True
+                        ro_coeff = np.array(coeffs_map[label])
+                    case _: pass
+    if ro_exist :
+        rf_envelop = ro_coeff 
+        return rf_envelop
+    return None
+
+def control_z( coeffs_map, target_index ):
+    z_exist = False
+    for label in coeffs_map.keys():
+        label_index = int(label[2:])
+        label_action = label[:2]
+        if label_index == target_index:
+            match label_action:
+                    case "sz":
+                        z_exist = True
+                        z_coeff = np.array(coeffs_map[label])
+                    case _: pass
+    if z_exist :
+        rf_envelop = z_coeff 
+        return rf_envelop
+    return None
+

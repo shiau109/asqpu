@@ -1,5 +1,5 @@
 from physics_model.complex_system import SingleReadableTransmon
-from qpu.backend.phychannel.physical_channel import PhysicalChannel
+from qpu.backend.channel.physical_channel import PhysicalChannel
 from typing import List
 from qpu.backend.component.q_component import QComponent
 

@@ -1,11 +1,9 @@
 from math import e
-import qpu.backend.phychannel as pch
+import qpu.backend.channel as pch
 from qutip import sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj
 from qutip_qip.operations import Gate #Measurement in 0.3.X qutip_qip
 from qutip_qip.circuit import QubitCircuit
 import numpy as np
-import qpu.backend.circuit.backendcircuit as bec
-import qpu.application as qapp
 
 import pulse_signal.common_Mathfunc as ps 
 import qpu.backend.circuit.compiler as becc
@@ -13,23 +11,35 @@ import sys
 sys.path.append("..")
 from BECircuit_fromTestFile import get_test_bec
 
-circuit = qapp.get_SQRB_circuit( 1,5 )
+rg_ro0 = Gate("RO", 0 )
+rg_x0 = Gate("RX", 0, arg_value= np.pi)
+rg_y0 = Gate("RY", 1, arg_value= np.pi)
+rg_z0 = Gate("RZ", 0, arg_value= 500)
+
+gate_seq = [
+    rg_x0, rg_x0, rg_y0, rg_x0, rg_z0, rg_ro0
+]
+circuit = QubitCircuit(2)
+
+single_qubit = basis(2, 0)
+
+for gate in gate_seq:
+    circuit.add_gate(gate)
+    #g_qobj = gate.get_compact_qobj()
+    #print( g_qobj )
+    #total_op *= g_qobj
+#print( "Result" )
+#print( total_op )
 
 mycompiler = becc.SQCompiler(1, params={})
 #print(mycompiler.gate_compiler)
 
 # raw circuit
 for gate in circuit.gates:
-    print(f"{gate.name} {gate.arg_value/np.pi} for {gate.targets}")
+    print(f"{gate.name} for {gate.targets}")
 
 #     print(gate.name, gate.get_compact_qobj())
 
-# After transpile
-# total_op = qeye(2)
-# trans_QC = myprocessor.transpile(circuit)
-# for gate in trans_QC.gates:
-#     total_op *= gate.get_compact_qobj()
-# print(total_op)
 
 compiled_data = mycompiler.compile(circuit, schedule_mode=False)
 
@@ -44,12 +54,17 @@ print(coeffs.keys())
 
 
 mybec = get_test_bec()
-
+print(mybec.to_qpc())
 #print(mybec.load_coeff(coeffs))
 
-ch_wf = mybec.translate_channel_output(coeffs)
-d_setting = mybec.devices_setting(coeffs)
+ch_wf = mybec.translate_channel_output(mycompiler.coeff_to_waveform(circuit))
+d_setting = mybec.devices_setting(mycompiler.coeff_to_waveform(circuit))
 dac_wf = d_setting["DAC"]
+
+import json
+with open('d_setting.txt', 'w') as file:
+    file.write(str(d_setting)) # use `json.loads` to do the reverse
+
 
 for dcategory in d_setting.keys():
     print(dcategory, d_setting[dcategory].keys())

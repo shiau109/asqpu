@@ -1,4 +1,4 @@
-from qpu.backend.phychannel.physical_channel import PhysicalChannel, UpConversionChannel, DACChannel
+from qpu.backend.channel.physical_channel import PhysicalChannel, UpConversionChannel, DACChannel
 
 
 def from_dict( channel:dict )->PhysicalChannel:
