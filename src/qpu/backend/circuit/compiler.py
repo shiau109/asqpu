@@ -172,10 +172,9 @@ class SQCompiler(GateCompiler):
             
             sampling_point = 300
             tlist = np.linspace(0,sampling_point,sampling_point, endpoint=False)
-            # gate.arg_value is the rotation angle
+
             coeff = ps.GERPFunc(tlist, *(1,300,0,15,30/4.) ) 
-            # tlist = np.abs(gate.arg_value) / self.params["pulse_amplitude"]
-            #coeff *= self.params["pulse_amplitude"] *gate.arg_value/np.pi
+
             pulse_info = [
                 # (control label, coeff)
                 ("ro" + str(gate.targets[0]), coeff)
@@ -209,13 +208,14 @@ class SQCompiler(GateCompiler):
             return [Instruction(gate, tlist=tlist, pulse_info=pulse_info)]
 
 
-    def coeff_to_waveform( self, circuit:QubitCircuit ):
+    def to_waveform( self, circuit:QubitCircuit ):
 
         compiled_data = self.compile(circuit, schedule_mode=False)
 
         tlist_map = compiled_data[0]
         coeffs_map = compiled_data[1]
         waveform_channel = []
+
 
         for qi in range(circuit.N):
             envelope_rf = control_xy(coeffs_map, qi)

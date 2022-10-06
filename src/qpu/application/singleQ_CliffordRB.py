@@ -154,13 +154,15 @@ def get_SQcircuit_random_clifford( target:int, num_gates:int ):
     return circuit_RB
 
 
-def get_SQRB_device_setting( backendcircuit, num_gates, target:int=0  ):
+def get_SQRB_device_setting( backendcircuit, num_gates, target:int=0, withRO:bool=False  ):
 
     d_setting = []
-
-    circuit_RB = get_SQcircuit_random_clifford( target, num_gates ) 
+    circuit_RB = get_SQcircuit_random_clifford( target, num_gates )
+    if withRO:
+        rg_ro = Gate("RO", target )
+        circuit_RB.add_gate(rg_ro)
     mycompiler = becc.SQCompiler(1, params={})
-    compiled_coeff = mycompiler.compile(circuit_RB, schedule_mode=False)
-    d_setting = backendcircuit.devices_setting(compiled_coeff[1])
+    waveform_channel = mycompiler.to_waveform(circuit_RB)
+    d_setting = backendcircuit.devices_setting(waveform_channel)
     return d_setting
 

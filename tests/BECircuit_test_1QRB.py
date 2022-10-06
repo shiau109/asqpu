@@ -18,24 +18,24 @@ import matplotlib.pyplot as plt
 
 mybec = get_test_bec()
 
-for i in range(2):
-    d_setting = qapp.get_SQRB_device_setting( mybec, 5  )
+for i in range(1):
+    d_setting = qapp.get_SQRB_device_setting( mybec, 5, 0, True  )
 
 
     #print(mybec.load_coeff(coeffs))
 
 
     dac_wf = d_setting["DAC"]
-    print(d_setting)
     for dcategory in d_setting.keys():
         print(dcategory, d_setting[dcategory].keys())
     # Plot setting
     fig, ax = plt.subplots(1,1,sharex=True)
 
     # Compare signal and envelope
-    for dacname in dac_wf.keys():
-        if type(dac_wf[dacname]) != type(None):
-            ax.plot( dac_wf[dacname], label=dacname )
+    for instr_name, settings in dac_wf.items():
+        for i, s in enumerate(settings):
+            if type(s) != type(None):
+                ax.plot( s, label=f"{instr_name}-{i+1}" )
     ax.legend()
 
     plt.show()

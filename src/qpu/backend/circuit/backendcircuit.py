@@ -121,64 +121,87 @@ class BackendCircuit():
         Input a list of tuple (qi, port, envelope_rf), with information of qubit from specification to output RF signal ( envelope, carrier frequency and belonged physical channel name ).
         """
         channel_output = {}
+        register_qN = len(self.q_reg["qubit"])
         for qi, port, envelope_rf in waveform_channel:
-            qname = self.q_reg["qubit"][qi]
-            qubit = self.get_qComp(qname)
-            phyCh = self.get_channel_qPort(qname,port)
-
-            match port:
-                case "xy":
-                    freq_carrier = qubit.transition_freq
-                case "ro_in":
-                    freq_carrier = qubit.readout_freq
-                case "z":
-                    freq_carrier = 0
-                case _:
-                    freq_carrier = 0
-            if phyCh.name not in channel_output.keys():
-                channel_output[phyCh.name] = [(envelope_rf,freq_carrier)]
+            if qi >= register_qN:
+                print(f"Only {register_qN} qubit are registered")
             else:
-                channel_output[phyCh.name].append( (envelope_rf,freq_carrier) )
+                qname = self.q_reg["qubit"][qi]
+                qubit = self.get_qComp(qname)
+                phyCh = self.get_channel_qPort(qname,port)
+
+                match port:
+                    case "xy":
+                        freq_carrier = qubit.tempPars["freq_xy"]
+                        envelope_rf *= qubit.tempPars["XYL"]
+                    case "ro_in":
+                        freq_carrier = qubit.tempPars["freq_ro"]
+                        envelope_rf *= qubit.tempPars["ROL"]
+
+                    case "z":
+                        print(qi, port)
+                        freq_carrier = 0
+                        envelope_rf += qubit.tempPars["IDLEZ"]
+
+                    case _:
+                        freq_carrier = 0
+
+                if phyCh.name not in channel_output.keys():
+                    channel_output[phyCh.name] = [(envelope_rf,freq_carrier)]
+                else:
+                    channel_output[phyCh.name].append( (envelope_rf,freq_carrier) )
 
         return channel_output
 
 
     def devices_setting( self, waveform_channel ):
-        channel_output = self.translate_channel_output(waveform_channel)
+        """
+        Translate different RF signal channel( include carrier freqency complex envelope ) to devices setting.
+        
+        Args:
+            waveform_channel ( ): A qutip Gate object.
+        
+        Returns:
+            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
+            to implement a gate containing the control pulses.
+        """
+        
         devices_setting_all = {
             "DAC":{},
             "SG":{},
         }
+ 
+
+        channel_output = self.translate_channel_output(waveform_channel)
         
         for chname in channel_output.keys():
             phyCh = self.get_channel(chname)
             print("Get setting from channel",chname)
 
+            single_signal = channel_output[chname][0]
             if isinstance(phyCh, UpConversionChannel):
-                envelope_rf = channel_output[chname][0]
-                freq_carrier = channel_output[chname][1]
+                envelope_rf = single_signal[0]
+                freq_carrier = single_signal[1]
                 devices_output =  phyCh.devices_setting( envelope_rf, freq_carrier )
 
             if isinstance(phyCh, DACChannel):
-                envelope_rf = channel_output[chname][0]
-
+                envelope_rf = single_signal[0]
                 devices_output =  phyCh.devices_setting( envelope_rf )
 
-            if "DAC" in devices_output.keys():
-                for dname in devices_output["DAC"].keys():  
-                    dac_output = devices_output["DAC"][dname]
-                    if dname not in devices_setting_all["DAC"].keys():
-                        devices_setting_all["DAC"][dname] = dac_output
-                    else:
-                        if type(dac_output) != type(None):
-                            devices_setting_all["DAC"][dname] += dac_output
+            for category in devices_setting_all.keys():
+                if category in devices_output.keys():
+                    for info, setting in devices_output[category].items():
+                        instr_name = info[0]
+                        channel_idx = info[1]-1
+                        if instr_name not in devices_setting_all[category].keys():
+                            #TODO Assume DAC onlu have 4 channel 
+                            devices_setting_all[category][instr_name] = [[],[],[],[]]
+                        
+                        if type(setting) != type(None):
+                            devices_setting_all[category][instr_name][channel_idx] = setting
                             
-            if "SG" in devices_output.keys():
-                for dname in devices_output["SG"].keys():  
-                    sg_output = devices_output["SG"][dname]
-                    if dname not in devices_setting_all["SG"].keys():
-                        devices_setting_all["SG"][dname] = sg_output
 
+        
 
         return devices_setting_all
 

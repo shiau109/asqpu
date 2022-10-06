@@ -13,11 +13,11 @@ from BECircuit_fromTestFile import get_test_bec
 
 rg_ro0 = Gate("RO", 0 )
 rg_x0 = Gate("RX", 0, arg_value= np.pi)
-rg_y0 = Gate("RY", 1, arg_value= np.pi)
+rg_y0 = Gate("RY", 0, arg_value= np.pi)
 rg_z0 = Gate("RZ", 0, arg_value= 500)
 
 gate_seq = [
-    rg_x0, rg_x0, rg_y0, rg_x0, rg_z0, rg_ro0
+    rg_x0, rg_x0, rg_y0, rg_x0, rg_ro0
 ]
 circuit = QubitCircuit(2)
 
@@ -57,8 +57,8 @@ mybec = get_test_bec()
 print(mybec.to_qpc())
 #print(mybec.load_coeff(coeffs))
 
-ch_wf = mybec.translate_channel_output(mycompiler.coeff_to_waveform(circuit))
-d_setting = mybec.devices_setting(mycompiler.coeff_to_waveform(circuit))
+ch_wf = mybec.translate_channel_output(mycompiler.to_waveform(circuit))
+d_setting = mybec.devices_setting(mycompiler.to_waveform(circuit))
 dac_wf = d_setting["DAC"]
 
 import json
@@ -81,14 +81,15 @@ ax[0].legend()
 for ch_name in ch_wf.keys():
     print(ch_name)
     if type(ch_wf[ch_name][0]) != type(None):
-        ax[1].plot( ch_wf[ch_name][0].real, label=f"{ch_name}.real" )
-        ax[1].plot( ch_wf[ch_name][0].imag, label=f"{ch_name}.imag" )
+        ax[1].plot( ch_wf[ch_name][0][0].real, label=f"{ch_name}.real" )
+        ax[1].plot( ch_wf[ch_name][0][0].imag, label=f"{ch_name}.imag" )
 ax[1].legend()
 
 # Compare signal and envelope
-for dacname in dac_wf.keys():
-    if type(dac_wf[dacname]) != type(None):
-        ax[2].plot( dac_wf[dacname], label=dacname )
+for instr_name, settings in dac_wf.items():
+    for i, s in enumerate(settings):
+        if type(s) != type(None):
+            ax[2].plot( s, label=f"{instr_name}-{i+1}" )
 ax[2].legend()
 
 plt.show()
