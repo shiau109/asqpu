@@ -1,4 +1,4 @@
-import qpu.backend.channel as pch
+import qpu.backend.phychannel as pch
 from qutip import sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj
 from qutip_qip.operations import Gate #Measurement in 0.3.X qutip_qip
 from qutip_qip.circuit import QubitCircuit

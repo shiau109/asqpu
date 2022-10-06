@@ -1,6 +1,6 @@
 from qpu.backend.component.q_component import QComponent
-from qpu.backend.channel.physical_channel import PhysicalChannel, UpConversionChannel, DACChannel
-from qpu.backend import channel
+from qpu.backend.phychannel.physical_channel import PhysicalChannel, UpConversionChannel, DACChannel
+from qpu.backend import phychannel
 from qpu.backend import component
 from pandas import DataFrame
 import abc
@@ -57,25 +57,25 @@ class BackendCircuit():
         # if isinstance(info,PhysicalChannel):
         #    self._channels.append(info)
         if isinstance(info,Dict):
-           new_channel = channel.from_dict(info)
+           new_channel = phychannel.from_dict(info)
            self._channels.append(new_channel)
         else:
             raise TypeError()
 
-    def get_IDs_channel( self )->str:
-        idList = []
-        for ch in self.channels:
-            idList.append(ch.id)
-        return idList
+    # def get_IDs_channel( self )->str:
+    #     idList = []
+    #     for ch in self.channels:
+    #         idList.append(ch.id)
+    #     return idList
 
 
 
-    def get_channel( self, id:str )->PhysicalChannel:
+    def get_channel( self, name:str )->PhysicalChannel:
         """
-        Get channel by its ID.
+        Get channel by its name.
         """
         for ch in self.channels:
-            if ch == id:
+            if ch == name:
                 return ch
         return None
 
@@ -139,7 +139,6 @@ class BackendCircuit():
                         envelope_rf *= qubit.tempPars["ROL"]
 
                     case "z":
-                        print(qi, port)
                         freq_carrier = 0
                         envelope_rf += qubit.tempPars["IDLEZ"]
 
@@ -169,6 +168,8 @@ class BackendCircuit():
         devices_setting_all = {
             "DAC":{},
             "SG":{},
+            "DC":{},
+            "ADC":{},
         }
  
 
@@ -210,7 +211,7 @@ class BackendCircuit():
         qpc_dict = {}
         qpc_dict["CH"] = {}
         qpc_dict["ROLE"] = {}
-        categorys = ["SG","DAC","ADC"]
+        categorys = ["SG","DAC","ADC","DC"]
         for c in categorys:
             qpc_dict[c] = []
             qpc_dict["CH"][c] = []

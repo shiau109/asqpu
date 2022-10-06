@@ -8,7 +8,7 @@ from pulse_signal.common_Mathfunc import DRAGFunc
 from copy import deepcopy
 from numpy import ndarray, pi
 
-from qpu.backend.channel.physical_channel import UpConversionChannel, DACChannel
+from qpu.backend.phychannel.physical_channel import UpConversionChannel, DACChannel
 ## TODO might replace by qutip
 class CircuitBuilder():
     """
