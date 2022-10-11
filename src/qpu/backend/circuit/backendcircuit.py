@@ -6,7 +6,7 @@ from pandas import DataFrame
 import abc
 from typing import List, Tuple, Union, Dict
 
-from numpy import array, logical_and, ndarray
+from numpy import array, ndarray, zeros
 
 class BackendCircuit():
     """
@@ -17,7 +17,7 @@ class BackendCircuit():
         self._channels = []
         #self._actions = []        
         self._devices = []
-        
+        self.total_time = 50000
         self.q_reg = None      
 
     def register_qComp( self, qcomp:QComponent ):
@@ -183,13 +183,15 @@ class BackendCircuit():
                 phyCh = self.get_channel(phyCh.name)
                 
                 single_signal = channel_output[phyCh.name][0]
+                envelope_rf = single_signal[0]
+                rf_points = envelope_rf.shape[-1]
+                if envelope_rf.shape[-1] < self.total_time:
+                    zeros()
                 if isinstance(phyCh, UpConversionChannel):
-                    envelope_rf = single_signal[0]
                     freq_carrier = single_signal[1]
                     devices_output =  phyCh.devices_setting( envelope_rf, freq_carrier  )
 
                 if isinstance(phyCh, DACChannel):
-                    envelope_rf = single_signal[0]
                     devices_output =  phyCh.devices_setting( envelope_rf )
             else:
                 if isinstance(phyCh, PumpingLine):
