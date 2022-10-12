@@ -6,7 +6,7 @@ from pandas import DataFrame
 import abc
 from typing import List, Tuple, Union, Dict
 
-from numpy import array, ndarray, zeros
+from numpy import array, ndarray, zeros, append
 
 class BackendCircuit():
     """
@@ -17,7 +17,8 @@ class BackendCircuit():
         self._channels = []
         #self._actions = []        
         self._devices = []
-        self.total_time = 50000
+        self.total_time = 5000
+        self.dt = 0.5
         self.q_reg = None      
 
     def register_qComp( self, qcomp:QComponent ):
@@ -183,10 +184,14 @@ class BackendCircuit():
                 phyCh = self.get_channel(phyCh.name)
                 
                 single_signal = channel_output[phyCh.name][0]
+
+                ## TODO assume all AWG share same output point num
                 envelope_rf = single_signal[0]
-                rf_points = envelope_rf.shape[-1]
-                if envelope_rf.shape[-1] < self.total_time:
-                    zeros()
+                point_rf = envelope_rf.shape[-1]
+                point_buffer = self.total_time - point_rf
+                if point_buffer>0:
+                    envelope_rf = append( zeros(point_buffer), envelope_rf )
+
                 if isinstance(phyCh, UpConversionChannel):
                     freq_carrier = single_signal[1]
                     devices_output =  phyCh.devices_setting( envelope_rf, freq_carrier  )
@@ -220,12 +225,12 @@ class BackendCircuit():
         qpc_dict = {}
         qpc_dict["CH"] = {}
         qpc_dict["ROLE"] = {}
+        ## Init qpc_dict
         categorys = ["SG","DAC","ADC","DC"]
         for c in categorys:
             qpc_dict[c] = []
             qpc_dict["CH"][c] = []
             qpc_dict["ROLE"][c] = []
-
 
 
         for pch in self.channels:
