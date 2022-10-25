@@ -144,7 +144,7 @@ class BackendCircuit():
 
                     case "z":
                         freq_carrier = 0
-                        envelope_rf += qubit.tempPars["IDLEZ"]
+                        # envelope_rf += qubit.tempPars["IDLEZ"]
 
                     case _:
                         freq_carrier = 0
@@ -163,7 +163,7 @@ class BackendCircuit():
                 if ch_name in channel_output.keys():
                     channel_output[ch_name][0] += qubit.tempPars["IDLEZ"]
                 else: # If the Z line is not used but reguster in cq_relation
-                    channel_output[ch_name] = [(zeros(self.total_time)+qubit.tempPars["IDLEZ"],0)]
+                    channel_output[ch_name] = [(zeros(self.total_point())+qubit.tempPars["IDLEZ"],0)]
         return channel_output
 
 
@@ -199,11 +199,14 @@ class BackendCircuit():
                 single_signal = channel_output[phyCh.name][0]
 
                 ## TODO assume all AWG share same output point num
+                channel_delay = phyCh.paras["delay"]
+                point_delay = int( -(channel_delay//-self.dt) )
                 envelope_rf = single_signal[0]
                 point_rf = envelope_rf.shape[-1]
-                point_buffer = self.total_time - point_rf
+                point_buffer = self.total_point() -point_rf -point_delay
                 if point_buffer>0:
                     envelope_rf = append( zeros(point_buffer), envelope_rf )
+                    envelope_rf = append( envelope_rf, zeros(point_delay) )
                 else:
                     print("waveform too many points.")
                 if isinstance(phyCh, UpConversionChannel):
@@ -263,7 +266,8 @@ class BackendCircuit():
 
         return qpc_dict
 
-
+    def total_point( self ):
+        return int( -(self.total_time//-self.dt) )
 
 
     @property

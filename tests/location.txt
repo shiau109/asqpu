@@ -36,7 +36,7 @@
         "freq_IF":0.12,
         "power_LO":23,
 
-		"delay": 0
+		"delay": 280
         }
 	},
 
@@ -49,7 +49,7 @@
 		},
 
     "paras":{
-		"delay": 0
+		"delay": 280
         }
 	},
 
