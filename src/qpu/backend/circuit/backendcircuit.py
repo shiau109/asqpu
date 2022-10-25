@@ -123,6 +123,9 @@ class BackendCircuit():
         """
         channel_output = {}
         register_qN = len(self.q_reg["qubit"])
+
+
+
         for qi, port, envelope_rf in waveform_channel:
             if qi >= register_qN:
                 print(f"Only {register_qN} qubit are registered")
@@ -150,7 +153,17 @@ class BackendCircuit():
                     channel_output[phyCh.name] = [(envelope_rf,freq_carrier)]
                 else:
                     channel_output[phyCh.name].append( (envelope_rf,freq_carrier) )
-
+        
+        for ch_name, q_name in zip(self.qc_relation["channel_id"],self.qc_relation["q_id"]):
+            
+            phyCh = self.get_channel(ch_name)
+            qubit = self.get_qComp(q_name)
+            if phyCh.port == "z" and "IDLEZ" in qubit.tempPars.keys(): # shift Z 
+                print(ch_name, q_name )
+                if ch_name in channel_output.keys():
+                    channel_output[ch_name][0] += qubit.tempPars["IDLEZ"]
+                else: # If the Z line is not used but reguster in cq_relation
+                    channel_output[ch_name] = [(zeros(self.total_time)+qubit.tempPars["IDLEZ"],0)]
         return channel_output
 
 
@@ -191,7 +204,8 @@ class BackendCircuit():
                 point_buffer = self.total_time - point_rf
                 if point_buffer>0:
                     envelope_rf = append( zeros(point_buffer), envelope_rf )
-
+                else:
+                    print("waveform too many points.")
                 if isinstance(phyCh, UpConversionChannel):
                     freq_carrier = single_signal[1]
                     devices_output =  phyCh.devices_setting( envelope_rf, freq_carrier  )
@@ -274,12 +288,7 @@ class BackendCircuit():
     def qc_relation( self, value:DataFrame):
         self._qc_relation = value
 
-    @property
-    def qa_relation( self )->DataFrame:
-        return self._qa_relation
-    @qa_relation.setter
-    def qa_relation( self, value:DataFrame):
-        self._qa_relation = value
+
 
 
 
