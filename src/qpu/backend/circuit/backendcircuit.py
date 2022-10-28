@@ -18,7 +18,7 @@ class BackendCircuit():
         #self._actions = []        
         self._devices = []
         self.total_time = 5000
-        self.dt = 0.5
+        self.dt = 1
         self.q_reg = None      
 
     def register_qComp( self, qcomp:QComponent ):
@@ -161,7 +161,8 @@ class BackendCircuit():
             if phyCh.port == "z" and "IDLEZ" in qubit.tempPars.keys(): # shift Z 
                 print(ch_name, q_name )
                 if ch_name in channel_output.keys():
-                    channel_output[ch_name][0] += qubit.tempPars["IDLEZ"]
+                    print(type(channel_output[ch_name][0][0]), qubit.tempPars["IDLEZ"] )
+                    channel_output[ch_name][0] = (channel_output[ch_name][0][0] +qubit.tempPars["IDLEZ"],0)
                 else: # If the Z line is not used but reguster in cq_relation
                     channel_output[ch_name] = [(zeros(self.total_point())+qubit.tempPars["IDLEZ"],0)]
         return channel_output
@@ -204,11 +205,13 @@ class BackendCircuit():
                 envelope_rf = single_signal[0]
                 point_rf = envelope_rf.shape[-1]
                 point_buffer = self.total_point() -point_rf -point_delay
+                
                 if point_buffer>0:
                     envelope_rf = append( zeros(point_buffer), envelope_rf )
                     envelope_rf = append( envelope_rf, zeros(point_delay) )
                 else:
                     print("waveform too many points.")
+                print(envelope_rf.shape)
                 if isinstance(phyCh, UpConversionChannel):
                     freq_carrier = single_signal[1]
                     devices_output =  phyCh.devices_setting( envelope_rf, freq_carrier  )
